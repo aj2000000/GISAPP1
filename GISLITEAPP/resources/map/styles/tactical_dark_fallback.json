@@ -1,0 +1,17 @@
+{
+  "version": 8,
+  "name": "Tactical Dark Fallback",
+  "metadata": {
+    "description": "Tactical dark fallback offline base style for GISLITEAPP"
+  },
+  "sources": {},
+  "layers": [
+    {
+      "id": "background",
+      "type": "background",
+      "paint": {
+        "background-color": "#0d1117"
+      }
+    }
+  ]
+}

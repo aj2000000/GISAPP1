@@ -1,0 +1,10 @@
+<RCC>
+    <qresource prefix="/icons">
+        <file alias="checkbox_checked_white.svg">icons/checkbox_checked_white.svg</file>
+        <file alias="checkbox_checked_dark.svg">icons/checkbox_checked_dark.svg</file>
+        <file alias="checkbox_indeterminate_white.svg">icons/checkbox_indeterminate_white.svg</file>
+        <file alias="checkbox_indeterminate_dark.svg">icons/checkbox_indeterminate_dark.svg</file>
+        <file alias="branch_closed.svg">icons/branch_closed.svg</file>
+        <file alias="branch_open.svg">icons/branch_open.svg</file>
+    </qresource>
+</RCC>

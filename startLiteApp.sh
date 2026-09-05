@@ -1,0 +1,1 @@
+GISLITEAPP/startLiteApp.sh
