@@ -61,6 +61,22 @@ public:
      */
     [[nodiscard]] QString databasePath() const { return m_dbPath; }
 
+    /**
+     * @brief Saves a key-value setting into the persistent database.
+     * @param[in] key Setting key identifier.
+     * @param[in] value Setting value string.
+     * @return True if stored successfully, false otherwise.
+     */
+    bool setSetting(const QString &key, const QString &value);
+
+    /**
+     * @brief Retrieves a key-value setting from persistent storage.
+     * @param[in] key Setting key identifier.
+     * @param[in] defaultValue Value to return if key does not exist.
+     * @return Stored value string or defaultValue.
+     */
+    [[nodiscard]] QString getSetting(const QString &key, const QString &defaultValue = QString()) const;
+
 private:
     explicit DatabaseManager(QObject *parent = nullptr);
     virtual ~DatabaseManager() override;

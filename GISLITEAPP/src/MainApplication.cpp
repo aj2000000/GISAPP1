@@ -3,6 +3,9 @@
 #include "AuthWindow.h"
 #include "ThemeManager.h"
 #include "DatabaseManager.h"
+#include "UdpServiceMediator.h"
+#include "ITrackRepository.h"
+#include "TrackRepository.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -17,6 +20,7 @@ MainApplication::MainApplication(QObject *parent)
     , m_authWindow(nullptr)
     , m_mainWindow(nullptr)
 {
+    s_instance = this;
     if (QCoreApplication::instance()) {
         connect(QCoreApplication::instance(), &QCoreApplication::aboutToQuit,
                 this, &MainApplication::onAboutToQuit);
@@ -26,6 +30,9 @@ MainApplication::MainApplication(QObject *parent)
 MainApplication::~MainApplication()
 {
     shutdown();
+    if (s_instance == this) {
+        s_instance = nullptr;
+    }
 }
 
 bool MainApplication::initialize()
@@ -107,6 +114,11 @@ void MainApplication::shutdown()
         m_mainWindow = nullptr;
     }
 
+    // Stop UDP communication service
+    if (m_udpMediator) {
+        m_udpMediator->stopService();
+    }
+
     // Close database connection if open
     GISApp::Database::DatabaseManager::instance().close();
 
@@ -163,7 +175,8 @@ bool MainApplication::initDatabase()
 bool MainApplication::initNetwork()
 {
     qInfo() << "[MainApplication] Initializing network and UDP communication...";
-    // Placeholder for UDP listeners/controllers initialization
+    m_udpMediator = new GISApp::Communication::Udp::UdpServiceMediator(this);
+    m_udpMediator->startService();
     return true;
 }
 
@@ -176,8 +189,9 @@ bool MainApplication::initServices()
 
 bool MainApplication::initUi()
 {
-    qInfo() << "[MainApplication] Applying default application theme...";
-    GISApp::UI::ThemeManager::instance().applyTheme(GISApp::UI::ThemeType::TacticalDark);
+    const auto savedTheme = GISApp::UI::ThemeManager::instance().loadSavedThemeOrDefault();
+    qInfo() << "[MainApplication] Applying application theme:" << GISApp::UI::ThemeManager::themeName(savedTheme);
+    GISApp::UI::ThemeManager::instance().applyTheme(savedTheme, false);
 
     qInfo() << "[MainApplication] Initializing authentication user interface...";
     m_authWindow = new AuthWindow();
@@ -200,6 +214,12 @@ void MainApplication::onUserAuthenticated(const QString &username)
 
     // Launch MainBaseUI (with menu bar, status bar, toolbars, and central workspace)
     m_mainWindow = new MainBaseUI(nullptr, MainBaseUI::WindowStartupMode::Maximized);
+
+    // Register live track repository with UDP Mediator
+    if (m_udpMediator && m_mainWindow && m_mainWindow->trackRepository()) {
+        m_udpMediator->registerTrackRepository(m_mainWindow->trackRepository());
+    }
+
     m_mainWindow->showStatusMessage(tr("Welcome %1 — Workspace Ready").arg(username), 6000);
 }
 

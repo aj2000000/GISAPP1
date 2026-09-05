@@ -34,7 +34,7 @@ QVector<GISApp::Domain::Layers::MapLayer*> SqliteLayerRepository::getAllLayers()
 
     QSqlQuery query(db);
     if (!query.exec("SELECT id, name, group_name, layer_type, source_uri, z_order, is_visible, opacity, config_json "
-                    "FROM layers ORDER BY z_order ASC;")) {
+                    "FROM layers ORDER BY z_order DESC;")) {
         qWarning() << "[SqliteLayerRepository] Failed to query layers:" << query.lastError().text();
         return layers;
     }
@@ -211,13 +211,13 @@ bool SqliteLayerRepository::purgeLegacyLayers()
     QSqlDatabase db = GISApp::Database::DatabaseManager::instance().database();
     if (!db.isOpen()) return false;
 
-    // Purge legacy mock/hallucinated layers
+    // Purge legacy mock/hallucinated layers (exclude valid fixed layers)
     QSqlQuery query(db);
     query.exec("DELETE FROM layers WHERE id IN ('layer_dark_base', 'layer_borders', 'layer_topography', "
-               "'layer_military_grid', 'layer_satellite', 'layer_tactical_tracks') "
+               "'layer_military_grid', 'layer_satellite') "
                "OR group_name IN ('Base Maps', 'Terrain');");
 
-    // Ensure the real BaseMap group layer exists
+    // Ensure the baseline BaseMap group layer exists
     QSqlQuery checkQuery(db);
     checkQuery.exec("SELECT COUNT(*) FROM layers WHERE group_name = 'BaseMap';");
     if (checkQuery.next() && checkQuery.value(0).toInt() == 0) {
@@ -246,6 +246,91 @@ void SqliteLayerRepository::seedDefaultLayers()
     saveLayer(&baseLayer);
 
     qInfo() << "[SqliteLayerRepository] BaseMap layer seeded successfully.";
+}
+
+bool SqliteLayerRepository::ensureLayerExists(const GISApp::Domain::Layers::MapLayer &prototype)
+{
+    QSqlDatabase db = GISApp::Database::DatabaseManager::instance().database();
+    if (!db.isOpen()) {
+        qWarning() << "[SqliteLayerRepository] Database not open during ensureLayerExists for:" << prototype.id();
+        return false;
+    }
+
+    // Step 1: Check if the layer already exists by ID
+    QSqlQuery checkQuery(db);
+    checkQuery.prepare("SELECT COUNT(*) FROM layers WHERE id = :id;");
+    checkQuery.bindValue(":id", prototype.id());
+
+    if (!checkQuery.exec()) {
+        qWarning() << "[SqliteLayerRepository] Failed existence check query for layer:"
+                   << prototype.id() << checkQuery.lastError().text();
+        return false;
+    }
+
+    if (checkQuery.next() && checkQuery.value(0).toInt() > 0) {
+        // Layer already exists in SQLite table -> synchronize title & group while preserving user customizations (z_order, visibility, opacity)
+        QSqlQuery updateMeta(db);
+        updateMeta.prepare("UPDATE layers SET name = :name, group_name = :group_name, updated_at = CURRENT_TIMESTAMP "
+                           "WHERE id = :id AND (name != :name OR group_name != :group_name);");
+        updateMeta.bindValue(":name", prototype.name());
+        updateMeta.bindValue(":group_name", prototype.groupName());
+        updateMeta.bindValue(":id", prototype.id());
+        updateMeta.exec();
+        return true;
+    }
+
+    // Step 2: Layer does not exist -> Determine topmost z_order (MAX(z_order) + 1)
+    QSqlQuery zQuery(db);
+    if (!zQuery.exec("SELECT COALESCE(MAX(z_order), -1) + 1 FROM layers;")) {
+        qWarning() << "[SqliteLayerRepository] Failed to calculate topmost z_order:" << zQuery.lastError().text();
+        return false;
+    }
+
+    int nextTopZOrder = 0;
+    if (zQuery.next()) {
+        nextTopZOrder = zQuery.value(0).toInt();
+    }
+
+    // Step 3: Insert new layer at the top of the stack associated with its group
+    QSqlQuery insertQuery(db);
+    insertQuery.prepare(
+        "INSERT INTO layers (id, name, group_name, layer_type, source_uri, z_order, is_visible, opacity, config_json, created_at, updated_at) "
+        "VALUES (:id, :name, :group_name, :layer_type, :source_uri, :z_order, :is_visible, :opacity, :config_json, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP);"
+    );
+
+    insertQuery.bindValue(":id", prototype.id());
+    insertQuery.bindValue(":name", prototype.name());
+    insertQuery.bindValue(":group_name", prototype.groupName());
+    insertQuery.bindValue(":layer_type", GISApp::Domain::Layers::MapLayer::layerTypeToString(prototype.layerType()));
+    insertQuery.bindValue(":source_uri", prototype.sourceUri());
+    insertQuery.bindValue(":z_order", nextTopZOrder);
+    insertQuery.bindValue(":is_visible", prototype.isVisible() ? 1 : 0);
+    insertQuery.bindValue(":opacity", prototype.opacity());
+    insertQuery.bindValue(":config_json", prototype.configJson().isEmpty() ? "{}" : prototype.configJson());
+
+    if (!insertQuery.exec()) {
+        qWarning() << "[SqliteLayerRepository] Failed to insert fixed layer:" << prototype.id()
+                   << insertQuery.lastError().text();
+        return false;
+    }
+
+    qInfo() << "[SqliteLayerRepository] Created fixed layer:" << prototype.id()
+            << "name:" << prototype.name()
+            << "group:" << prototype.groupName()
+            << "at topmost z_order:" << nextTopZOrder;
+
+    return true;
+}
+
+bool SqliteLayerRepository::ensureFixedLayers(const QVector<GISApp::Domain::Layers::MapLayer> &prototypes)
+{
+    bool allSuccess = true;
+    for (const auto &proto : prototypes) {
+        if (!ensureLayerExists(proto)) {
+            allSuccess = false;
+        }
+    }
+    return allSuccess;
 }
 
 } // namespace GISApp::Repositories::Sqlite

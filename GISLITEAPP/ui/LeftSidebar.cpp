@@ -37,12 +37,14 @@ void LeftSidebar::setupButtons()
 
     QToolButton *settingsBtn = createButton("Settings", "⚙", true);
     QToolButton *layersBtn = createButton("Layers", "≡", true);
+    QToolButton *tracksBtn = createButton("Tracks", "🎯", true);
     QToolButton *analyticsBtn = createButton("Analytics", "📊", true);
     QToolButton *toolsBtn = createButton("Tools", "🔧", true);
 
     m_topLayout->addWidget(homeBtn);
     m_topLayout->addWidget(settingsBtn);
     m_topLayout->addWidget(layersBtn);
+    m_topLayout->addWidget(tracksBtn);
     m_topLayout->addWidget(analyticsBtn);
     m_topLayout->addWidget(toolsBtn);
 

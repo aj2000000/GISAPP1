@@ -83,6 +83,31 @@ public:
      * @return True if cleaned up successfully, false on database error.
      */
     virtual bool purgeLegacyLayers() = 0;
+
+    /**
+     * @brief Ensures a fixed/mandatory application layer exists in persistent storage.
+     *
+     * Checks the persistent store by unique layer identifier:
+     * - If the layer already exists, leaves it completely untouched (preserving user-configured
+     *   z-order, visibility, opacity, and custom settings).
+     * - If missing, determines the topmost z-order (MAX(z_order) + 1) and creates the layer
+     *   associated with the specified group_name at the top of the stack.
+     *
+     * @param[in] prototype Prototype MapLayer entity defining id, name, groupName, type, and sourceUri.
+     * @return True if the layer already exists or was successfully created; false on database error.
+     * @note Thread safety depends on the underlying repository implementation.
+     */
+    virtual bool ensureLayerExists(const GISApp::Domain::Layers::MapLayer &prototype) = 0;
+
+    /**
+     * @brief Ensures a collection of fixed/mandatory application layers exist in persistent storage.
+     *
+     * Iterates through the provided layer prototypes, verifying each one exists or creating it on top.
+     *
+     * @param[in] prototypes Vector of prototype MapLayer entities.
+     * @return True if all fixed layers exist or were created successfully; false if any failed.
+     */
+    virtual bool ensureFixedLayers(const QVector<GISApp::Domain::Layers::MapLayer> &prototypes) = 0;
 };
 
 } // namespace GISApp::Repositories

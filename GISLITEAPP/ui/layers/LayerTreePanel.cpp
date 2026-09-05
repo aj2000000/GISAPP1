@@ -71,6 +71,12 @@ void LayerTreePanel::setupUi()
     toolbarLayout->setContentsMargins(0, 0, 0, 0);
     toolbarLayout->setSpacing(4);
 
+    m_panToBtn = new QToolButton(toolbarWidget);
+    m_panToBtn->setObjectName("LayerTreeActionBtn");
+    m_panToBtn->setText("🎯");
+    m_panToBtn->setToolTip("Pan to Layer / Group");
+    m_panToBtn->setFixedSize(30, 30);
+
     m_moveUpBtn = new QToolButton(toolbarWidget);
     m_moveUpBtn->setObjectName("LayerTreeActionBtn");
     m_moveUpBtn->setText("⬆️");
@@ -95,6 +101,7 @@ void LayerTreePanel::setupUi()
     m_addLayerBtn->setToolTip("Add Layer / Dataset");
     m_addLayerBtn->setFixedSize(30, 30);
 
+    toolbarLayout->addWidget(m_panToBtn);
     toolbarLayout->addWidget(m_moveUpBtn);
     toolbarLayout->addWidget(m_moveDownBtn);
     toolbarLayout->addWidget(m_toggleBtn);
@@ -122,6 +129,9 @@ void LayerTreePanel::setupConnections()
         emit closeRequested();
     });
 
+    connect(m_panToBtn, &QToolButton::clicked, this, [this]() {
+        emit panToRequested(selectedIndex());
+    });
     connect(m_moveUpBtn, &QToolButton::clicked, this, &LayerTreePanel::moveUpRequested);
     connect(m_moveDownBtn, &QToolButton::clicked, this, &LayerTreePanel::moveDownRequested);
     connect(m_toggleBtn, &QToolButton::clicked, this, &LayerTreePanel::toggleVisibilityRequested);
@@ -153,6 +163,7 @@ void LayerTreePanel::setupConnections()
     });
 
     if (m_treeView) {
+        connect(m_treeView, &LayerTreeView::panToTriggered, this, &LayerTreePanel::panToRequested);
         connect(m_treeView, &LayerTreeView::moveUpTriggered, this, &LayerTreePanel::moveUpRequested);
         connect(m_treeView, &LayerTreeView::moveDownTriggered, this, &LayerTreePanel::moveDownRequested);
         connect(m_treeView, &LayerTreeView::toggleVisibilityTriggered, this, &LayerTreePanel::toggleVisibilityRequested);

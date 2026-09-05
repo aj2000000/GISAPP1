@@ -1,16 +1,59 @@
 {
   "version": 8,
-  "name": "Tactical Dark Fallback",
+  "name": "Tactical Dark Base",
   "metadata": {
-    "description": "Tactical dark fallback offline base style for GISLITEAPP"
+    "description": "Tactical dark base map style with global cartography and telemetry support"
   },
-  "sources": {},
+  "center": [77.2090, 28.6139],
+  "zoom": 7.0,
+  "glyphs": "https://demotiles.maplibre.org/font/{fontstack}/{range}.pbf",
+  "sources": {
+    "tactical_basemap": {
+      "type": "raster",
+      "tiles": [
+        "https://a.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://b.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://c.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png",
+        "https://d.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "maxzoom": 19
+    },
+    "worldmap": {
+      "type": "raster",
+      "tiles": [
+        "http://localhost:8000/tiles/{z}/{x}/{y}.png"
+      ],
+      "tileSize": 256,
+      "maxzoom": 19
+    }
+  },
   "layers": [
     {
       "id": "background",
       "type": "background",
       "paint": {
         "background-color": "#0d1117"
+      }
+    },
+    {
+      "id": "tactical_basemap_layer",
+      "type": "raster",
+      "source": "tactical_basemap",
+      "minzoom": 0,
+      "maxzoom": 19,
+      "layout": {
+        "visibility": "visible"
+      }
+    },
+    {
+      "id": "worldmap_layer",
+      "type": "raster",
+      "source": "worldmap",
+      "minzoom": 0,
+      "maxzoom": 19,
+      "layout": {
+        "visibility": "none"
       }
     }
   ]

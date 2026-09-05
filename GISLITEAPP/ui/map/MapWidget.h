@@ -184,6 +184,11 @@ signals:
      */
     void mapChanged(int changeType);
 
+    /**
+     * @brief Emitted once the underlying QMapLibre::Map core instance is initialized and ready.
+     */
+    void mapReady();
+
 protected:
     /**
      * @brief Intercepts events from child widgets to capture hover coordinates.
@@ -199,6 +204,12 @@ protected:
      */
     void mouseMoveEvent(QMouseEvent *event) override;
 
+    /**
+     * @brief Handles widget display events to finalize map initialization.
+     * @param[in] event Show event.
+     */
+    void showEvent(QShowEvent *event) override;
+
 private slots:
     /**
      * @brief Internal slot handling notifications from QMapLibre::Map::mapChanged.
@@ -207,6 +218,11 @@ private slots:
     void onMapLibreChange(int change);
 
 private:
+    /**
+     * @brief Checks if native QMapLibre::Map core is created, binds change signals, and loads initial style.
+     */
+    void checkMapReady();
+
     /**
      * @brief Resolves geodetic coordinates for a viewport pixel point and emits telemetry signals.
      * @param[in] pos Screen pixel position relative to the map canvas.
@@ -224,13 +240,19 @@ private:
     void loadInitialStyle();
 
     /// Wrapped native MapLibre QRhiWidget instance
-    QMapLibre::MapWidget *m_nativeMapWidget;
+    QMapLibre::MapWidget *m_nativeMapWidget{nullptr};
 
     /// Cached zoom level used to throttle redundant zoomChanged signal emissions
-    double m_lastReportedZoom;
+    double m_lastReportedZoom{4.0};
 
     /// Cached bearing degrees used to throttle redundant bearingChanged signal emissions
-    double m_lastReportedBearing;
+    double m_lastReportedBearing{0.0};
+
+    /// Flag indicating whether MapLibre core instance has been connected
+    bool m_mapInitialized{false};
+
+    /// Polling timer to detect when Map core is instantiated by QRhiWidget
+    class QTimer *m_initTimer{nullptr};
 };
 
 } // namespace GISApp::UI

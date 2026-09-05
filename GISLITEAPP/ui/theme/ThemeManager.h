@@ -62,11 +62,32 @@ public:
     static QString themeName(ThemeType theme);
 
     /**
+     * @brief Converts a ThemeType enum to a database key string.
+     * @param[in] theme ThemeType to serialize.
+     * @return Unique string key representation (e.g. "TacticalDark").
+     */
+    static QString themeToKey(ThemeType theme);
+
+    /**
+     * @brief Parses a database key string to a ThemeType enum value.
+     * @param[in] key Key string from persistent settings.
+     * @return Matching ThemeType value, defaulting to TacticalDark if unknown.
+     */
+    static ThemeType themeFromKey(const QString &key);
+
+    /**
+     * @brief Loads the saved theme from persistent SQLite storage, or returns default if not set.
+     * @return Persisted ThemeType enum value.
+     */
+    [[nodiscard]] ThemeType loadSavedThemeOrDefault() const;
+
+    /**
      * @brief Sets and applies a new theme across the entire QApplication.
      * @param[in] theme The new ThemeType to activate.
+     * @param[in] saveToDb If true, stores the selected theme in the SQLite database.
      * @note Applies the stylesheet directly to `qApp` and notifies all subscribers via `themeChanged`.
      */
-    void applyTheme(ThemeType theme);
+    void applyTheme(ThemeType theme, bool saveToDb = true);
 
     /**
      * @brief Generates the full CSS/QSS stylesheet string for the specified theme.

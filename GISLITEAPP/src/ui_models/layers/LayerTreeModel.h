@@ -107,6 +107,14 @@ public:
      */
     QMap<QString, int> synchronizeZOrders();
 
+    /**
+     * @brief Recursively traverses children to collect all MapLayer leaf entities.
+     * @param[in] parent Parent node to traverse.
+     * @param[out] result Vector to append found layers to.
+     */
+    void collectLayersRecursive(GISApp::Domain::Layers::LayerNode *parent,
+                                QVector<GISApp::Domain::Layers::MapLayer*> &result) const;
+
 signals:
     /**
      * @brief Emitted when a layer's visibility checkbox state is toggled.
@@ -122,14 +130,6 @@ signals:
     void layerOrderChanged(const QMap<QString, int> &orderMap);
 
 private:
-    /**
-     * @brief Recursively traverses children to collect all MapLayer leaf entities.
-     * @param[in] parent Parent node to traverse.
-     * @param[out] result Vector to append found layers to.
-     */
-    void collectLayersRecursive(GISApp::Domain::Layers::LayerNode *parent,
-                                QVector<GISApp::Domain::Layers::MapLayer*> &result) const;
-
     /// Root composite node hosting all top-level groups and layers
     GISApp::Domain::Layers::LayerNode *m_rootNode;
 };

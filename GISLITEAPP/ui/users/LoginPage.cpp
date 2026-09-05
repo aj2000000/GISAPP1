@@ -28,6 +28,9 @@ LoginPage::~LoginPage()
 
 void LoginPage::setupUi()
 {
+    setObjectName(QStringLiteral("LoginPage"));
+    setAttribute(Qt::WA_StyledBackground, true);
+
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(36, 40, 36, 40);
     mainLayout->setSpacing(16);
@@ -110,7 +113,7 @@ void LoginPage::setupUi()
     // Switch to Register Link
     QHBoxLayout *registerLinkLayout = new QHBoxLayout();
     QLabel *noAccountLabel = new QLabel(tr("Don't have an account?"), this);
-    noAccountLabel->setStyleSheet("color: #718096; font-size: 13px;");
+    noAccountLabel->setObjectName(QStringLiteral("mutedNoticeLabel"));
 
     m_switchToRegisterButton = new QPushButton(tr("Register here"), this);
     m_switchToRegisterButton->setObjectName("linkButton");
@@ -135,23 +138,7 @@ void LoginPage::setupUi()
 
 void LoginPage::setupStyles()
 {
-    setStyleSheet(
-        "QWidget { font-family: 'Segoe UI', Arial, sans-serif; }"
-        "QLabel#loginBrandTitle { font-size: 26px; font-weight: 700; color: #2B6CB0; letter-spacing: 1px; }"
-        "QLabel#loginSubtitle { font-size: 13px; color: #718096; margin-bottom: 6px; }"
-        "QLabel#fieldLabel { font-size: 12px; font-weight: 600; color: #4A5568; margin-top: 4px; }"
-        "QLabel#loginErrorLabel { background-color: #FED7D7; color: #9B2C2C; border-radius: 6px; padding: 8px; font-size: 12px; }"
-        "QLineEdit { border: 1px solid #CBD5E0; border-radius: 6px; padding: 9px 12px; font-size: 13px; background-color: #FFFFFF; color: #2D3748; }"
-        "QLineEdit:focus { border: 1px solid #3182CE; background-color: #FFFFFF; }"
-        "QCheckBox { font-size: 12px; color: #4A5568; }"
-        "QPushButton#primaryButton { background-color: #2B6CB0; color: #FFFFFF; font-size: 14px; font-weight: 600; padding: 10px; border-radius: 6px; border: none; }"
-        "QPushButton#primaryButton:hover { background-color: #2C5282; }"
-        "QPushButton#primaryButton:pressed { background-color: #1A365D; }"
-        "QPushButton#secondaryButton { background-color: #EDF2F7; color: #4A5568; font-size: 13px; font-weight: 500; padding: 8px; border-radius: 6px; border: 1px solid #CBD5E0; }"
-        "QPushButton#secondaryButton:hover { background-color: #E2E8F0; }"
-        "QPushButton#linkButton { color: #3182CE; font-size: 13px; font-weight: 600; text-decoration: none; border: none; padding: 0; }"
-        "QPushButton#linkButton:hover { color: #2B6CB0; text-decoration: underline; }"
-    );
+    // Styling is centralized and managed by ThemeManager
 }
 
 void LoginPage::onLoginClicked()

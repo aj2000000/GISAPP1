@@ -29,6 +29,9 @@ RegisterPage::~RegisterPage()
 
 void RegisterPage::setupUi()
 {
+    setObjectName(QStringLiteral("RegisterPage"));
+    setAttribute(Qt::WA_StyledBackground, true);
+
     QVBoxLayout *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(36, 32, 36, 32);
     mainLayout->setSpacing(12);
@@ -114,7 +117,7 @@ void RegisterPage::setupUi()
     // Switch to Login Link
     QHBoxLayout *loginLinkLayout = new QHBoxLayout();
     QLabel *haveAccountLabel = new QLabel(tr("Already registered?"), this);
-    haveAccountLabel->setStyleSheet("color: #718096; font-size: 13px;");
+    haveAccountLabel->setObjectName(QStringLiteral("mutedNoticeLabel"));
 
     m_switchToLoginButton = new QPushButton(tr("Sign In"), this);
     m_switchToLoginButton->setObjectName("linkButton");
@@ -137,20 +140,7 @@ void RegisterPage::setupUi()
 
 void RegisterPage::setupStyles()
 {
-    setStyleSheet(
-        "QWidget { font-family: 'Segoe UI', Arial, sans-serif; }"
-        "QLabel#registerTitle { font-size: 24px; font-weight: 700; color: #2B6CB0; }"
-        "QLabel#registerSubtitle { font-size: 13px; color: #718096; margin-bottom: 4px; }"
-        "QLabel#fieldLabel { font-size: 12px; font-weight: 600; color: #4A5568; margin-top: 2px; }"
-        "QLabel#registerErrorLabel { background-color: #FED7D7; color: #9B2C2C; border-radius: 6px; padding: 6px; font-size: 12px; }"
-        "QLineEdit, QComboBox { border: 1px solid #CBD5E0; border-radius: 6px; padding: 7px 10px; font-size: 13px; background-color: #FFFFFF; color: #2D3748; }"
-        "QLineEdit:focus, QComboBox:focus { border: 1px solid #3182CE; }"
-        "QPushButton#primaryButton { background-color: #2B6CB0; color: #FFFFFF; font-size: 14px; font-weight: 600; padding: 10px; border-radius: 6px; border: none; }"
-        "QPushButton#primaryButton:hover { background-color: #2C5282; }"
-        "QPushButton#primaryButton:pressed { background-color: #1A365D; }"
-        "QPushButton#linkButton { color: #3182CE; font-size: 13px; font-weight: 600; border: none; padding: 0; }"
-        "QPushButton#linkButton:hover { color: #2B6CB0; text-decoration: underline; }"
-    );
+    // Styling is centralized and managed by ThemeManager
 }
 
 void RegisterPage::onRegisterClicked()

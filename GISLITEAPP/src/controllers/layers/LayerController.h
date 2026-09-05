@@ -8,7 +8,9 @@
 
 #include <QObject>
 #include <QMap>
+#include <QStringList>
 #include <QString>
+#include <QModelIndex>
 
 namespace GISApp::Domain::Layers {
 class MapLayer;
@@ -16,6 +18,7 @@ class MapLayer;
 
 namespace GISApp::Repositories {
 class ILayerRepository;
+class ITrackRepository;
 }
 
 namespace GISApp::UIModels::Layers {
@@ -28,6 +31,14 @@ class MapWidget;
 
 namespace GISApp::UI::Layers {
 class LayerTreePanel;
+}
+
+namespace GISApp::Controllers {
+class MapController;
+}
+
+namespace GISApp::Controllers::Tracks {
+class TrackController;
 }
 
 namespace GISApp::Controllers::Layers {
@@ -78,6 +89,24 @@ public:
      */
     void togglePanel();
 
+    /**
+     * @brief Sets the MapController instance for camera manipulation (pan/zoom).
+     * @param[in] mapController Pointer to MapController.
+     */
+    void setMapController(GISApp::Controllers::MapController *mapController);
+
+    /**
+     * @brief Sets the track repository used to compute tactical track layer bounds.
+     * @param[in] trackRepo Pointer to ITrackRepository.
+     */
+    void setTrackRepository(GISApp::Repositories::ITrackRepository *trackRepo);
+
+    /**
+     * @brief Sets the TrackController for tactical track visibility delegation.
+     * @param[in] trackController Pointer to TrackController.
+     */
+    void setTrackController(GISApp::Controllers::Tracks::TrackController *trackController);
+
 public slots:
     /**
      * @brief Promotes the currently selected layer in the tree (Move Up).
@@ -99,6 +128,17 @@ public slots:
      */
     void addNewLayer();
 
+    /**
+     * @brief Pans the map to the currently selected layer or group in the layer tree.
+     */
+    void panToSelectedLayer();
+
+    /**
+     * @brief Pans the map to the geographic bounds or center of the given layer or group.
+     * @param[in] index Model index of target layer or group node.
+     */
+    void panToLayer(const QModelIndex &index);
+
 private slots:
     /**
      * @brief Slot called when LayerTreeModel emits a layer visibility change.
@@ -119,10 +159,43 @@ private:
      */
     void setupConnections();
 
+    /**
+     * @brief Ensures mandatory system fixed layers exist in the persistent store.
+     *
+     * Defines baseline application layers (e.g. BaseMap, Tactical Tracks) and verifies
+     * their presence in the repository. If not present, creates them positioned at the
+     * topmost z-order, associated with their designated group.
+     */
+    void ensureFixedLayersExist();
+
+    /**
+     * @brief Maps a logical application layer ID to its corresponding MapLibre GPU layer IDs.
+     *
+     * A single logical layer (e.g. "tactical_tracks") may expand to multiple MapLibre layers
+     * (glow, circle, label). "background" expands to the solid fill plus the raster tile layer.
+     *
+     * @param[in] logicalId The application-level layer identifier (e.g. "background", "tactical_tracks").
+     * @return Ordered list of MapLibre layer IDs that belong to this logical layer.
+     */
+    [[nodiscard]] QStringList resolveMapLibreLayerIds(const QString &logicalId) const;
+
+    /**
+     * @brief Re-stacks MapLibre GPU layers to match the z-order from the Layer Tree Model.
+     *
+     * Removes and re-adds each MapLibre layer using the `beforeLayerId` parameter to enforce
+     * the desired draw order. Layers with higher z-order in the tree render on top.
+     *
+     * @param[in] orderMap Map of logical layer IDs to z-order integers (higher = on top).
+     */
+    void restackMapLibreLayers(const QMap<QString, int> &orderMap);
+
     GISApp::UIModels::Layers::LayerTreeModel *m_treeModel;
     GISApp::Repositories::ILayerRepository *m_repository;
     GISApp::UI::MapWidget *m_mapWidget;
     GISApp::UI::Layers::LayerTreePanel *m_panel;
+    GISApp::Controllers::MapController *m_mapController{nullptr};
+    GISApp::Repositories::ITrackRepository *m_trackRepository{nullptr};
+    GISApp::Controllers::Tracks::TrackController *m_trackController{nullptr};
 };
 
 } // namespace GISApp::Controllers::Layers

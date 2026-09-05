@@ -19,11 +19,35 @@ class MapViewContainer;
 class MapWidget;
 }
 
+namespace GISApp::UI::Renderers {
+class TrackMapRenderer;
+}
+
+namespace GISApp::UI::Tracks {
+class TrackTablePanelDialog;
+}
+
+namespace GISApp::UIModels::Tracks {
+class TrackTableModel;
+}
+
 namespace GISApp::Controllers {
 class MapController;
 namespace Layers {
 class LayerController;
 }
+}
+
+namespace GISApp::Repositories::Tracks {
+class TrackRepository;
+}
+
+namespace GISApp::Services::Tracks {
+class TacticalTrackService;
+}
+
+namespace GISApp::Controllers::Tracks {
+class TrackController;
 }
 
 class MainBaseUI : public QMainWindow
@@ -63,10 +87,19 @@ public:
     GISApp::UI::MapWidget *mapWidget() const;
     GISApp::Controllers::MapController *mapController() const { return m_mapController; }
     GISApp::Controllers::Layers::LayerController *layerController() const { return m_layerController; }
+    GISApp::Repositories::Tracks::TrackRepository *trackRepository() const { return m_trackRepository; }
+    GISApp::Services::Tracks::TacticalTrackService *tacticalTrackService() const { return m_tacticalTrackService; }
+    GISApp::UI::Renderers::TrackMapRenderer *trackMapRenderer() const { return m_trackMapRenderer; }
+    GISApp::Controllers::Tracks::TrackController *trackController() const { return m_trackController; }
+    GISApp::UIModels::Tracks::TrackTableModel *trackTableModel() const { return m_trackTableModel; }
+    GISApp::UI::Tracks::TrackTablePanelDialog *trackTableDialog() const { return m_trackTableDialog; }
 
     // Status bar utilities
     void showStatusMessage(const QString &message, int timeout = 4000);
     void updateCoordinates(double latitude, double longitude, double altitude = 0.0);
+
+public slots:
+    void openTrackTableDialog();
 
 protected:
     // Virtual template hooks for customisation
@@ -91,6 +124,12 @@ protected:
     GISApp::UI::MapViewContainer *m_mapViewContainer;
     GISApp::Controllers::MapController *m_mapController;
     GISApp::Controllers::Layers::LayerController *m_layerController;
+    GISApp::Repositories::Tracks::TrackRepository *m_trackRepository{nullptr};
+    GISApp::Services::Tracks::TacticalTrackService *m_tacticalTrackService{nullptr};
+    GISApp::UI::Renderers::TrackMapRenderer *m_trackMapRenderer{nullptr};
+    GISApp::Controllers::Tracks::TrackController *m_trackController{nullptr};
+    GISApp::UIModels::Tracks::TrackTableModel *m_trackTableModel{nullptr};
+    GISApp::UI::Tracks::TrackTablePanelDialog *m_trackTableDialog{nullptr};
 };
 
 #endif // MAINBASEUI_H

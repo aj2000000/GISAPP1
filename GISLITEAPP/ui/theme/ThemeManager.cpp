@@ -4,6 +4,7 @@
  */
 
 #include "ThemeManager.h"
+#include "DatabaseManager.h"
 #include <QApplication>
 
 namespace GISApp::UI {
@@ -45,16 +46,63 @@ QString ThemeManager::themeName(ThemeType theme)
 }
 
 /**
+ * @brief Converts a ThemeType enum to a database key string.
+ * @param[in] theme ThemeType to serialize.
+ * @return Unique string key representation (e.g. "TacticalDark").
+ */
+QString ThemeManager::themeToKey(ThemeType theme)
+{
+    switch (theme) {
+        case ThemeType::CyberEmerald:     return QStringLiteral("CyberEmerald");
+        case ThemeType::MidnightBlue:     return QStringLiteral("MidnightBlue");
+        case ThemeType::HighContrastDark: return QStringLiteral("HighContrastDark");
+        case ThemeType::LightOps:         return QStringLiteral("LightOps");
+        case ThemeType::TacticalDark:
+        default:                          return QStringLiteral("TacticalDark");
+    }
+}
+
+/**
+ * @brief Parses a database key string to a ThemeType enum value.
+ * @param[in] key Key string from persistent settings.
+ * @return Matching ThemeType value, defaulting to TacticalDark if unknown.
+ */
+ThemeType ThemeManager::themeFromKey(const QString &key)
+{
+    if (key == QStringLiteral("CyberEmerald"))     return ThemeType::CyberEmerald;
+    if (key == QStringLiteral("MidnightBlue"))     return ThemeType::MidnightBlue;
+    if (key == QStringLiteral("HighContrastDark")) return ThemeType::HighContrastDark;
+    if (key == QStringLiteral("LightOps"))         return ThemeType::LightOps;
+    return ThemeType::TacticalDark;
+}
+
+/**
+ * @brief Loads the saved theme from persistent SQLite storage, or returns default if not set.
+ * @return Persisted ThemeType enum value.
+ */
+ThemeType ThemeManager::loadSavedThemeOrDefault() const
+{
+    QString savedKey = GISApp::Database::DatabaseManager::instance().getSetting(
+        QStringLiteral("app_theme"), QStringLiteral("TacticalDark"));
+    return themeFromKey(savedKey);
+}
+
+/**
  * @brief Applies the selected visual theme across the entire application stylesheet.
  * @param[in] theme The ThemeType to apply.
+ * @param[in] saveToDb If true, records the selected theme in the SQLite database.
  * @note Re-renders all styled Qt widgets and emits themeChanged signal.
  */
-void ThemeManager::applyTheme(ThemeType theme)
+void ThemeManager::applyTheme(ThemeType theme, bool saveToDb)
 {
     m_currentTheme = theme;
     QString qss = getStyleSheet(theme);
     if (qApp) {
         qApp->setStyleSheet(qss);
+    }
+    if (saveToDb) {
+        GISApp::Database::DatabaseManager::instance().setSetting(
+            QStringLiteral("app_theme"), themeToKey(theme));
     }
     emit themeChanged(theme);
 }
@@ -796,6 +844,124 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         QMenu#LayerContextMenu::item:selected {
             background-color: %4;
             color: #ffffff;
+        }
+
+        /* =======================================================
+           Tactical Table Panels & Dialog Components
+           ======================================================= */
+        QDialog#BaseTablePanelDialog,
+        QDialog#TrackTablePanelDialog {
+            background-color: %2;
+            color: %6;
+            border: 1px solid %5;
+            border-radius: 8px;
+        }
+        QLabel#StatusBadge {
+            color: %7;
+            font-size: 12px;
+            padding: 4px 10px;
+            background-color: %1;
+            border: 1px solid %5;
+            border-radius: 4px;
+        }
+        QLabel#TableFilterLabel {
+            color: %7;
+            font-size: 11px;
+            font-weight: bold;
+            padding-right: 4px;
+            background: transparent;
+        }
+
+        /* =======================================================
+           Authentication Window & Auth Pages (Login & Register)
+           ======================================================= */
+        QWidget#AuthWindow {
+            background-color: %2;
+            color: %6;
+        }
+        QWidget#LoginPage,
+        QWidget#RegisterPage {
+            background-color: transparent;
+            font-family: 'Segoe UI', Arial, sans-serif;
+        }
+        QLabel#loginBrandTitle,
+        QLabel#registerTitle {
+            font-size: 26px;
+            font-weight: 700;
+            color: %4;
+            letter-spacing: 1px;
+            background: transparent;
+        }
+        QLabel#loginSubtitle,
+        QLabel#registerSubtitle {
+            font-size: 13px;
+            color: %7;
+            margin-bottom: 6px;
+            background: transparent;
+        }
+        QLabel#fieldLabel {
+            font-size: 12px;
+            font-weight: 600;
+            color: %6;
+            margin-top: 4px;
+            background: transparent;
+        }
+        QLabel#mutedNoticeLabel {
+            color: %7;
+            font-size: 13px;
+            background: transparent;
+        }
+        QLabel#loginErrorLabel,
+        QLabel#registerErrorLabel {
+            background-color: rgba(239, 68, 68, 0.15);
+            color: #f87171;
+            border: 1px solid rgba(239, 68, 68, 0.4);
+            border-radius: 6px;
+            padding: 8px;
+            font-size: 12px;
+        }
+        QPushButton#primaryButton {
+            background-color: %4;
+            color: #ffffff;
+            font-size: 14px;
+            font-weight: 600;
+            padding: 10px;
+            border-radius: 6px;
+            border: none;
+        }
+        QPushButton#primaryButton:hover {
+            background-color: %4;
+            border: 1px solid #ffffff;
+        }
+        QPushButton#primaryButton:pressed {
+            background-color: %5;
+        }
+        QPushButton#secondaryButton {
+            background-color: %1;
+            color: %6;
+            font-size: 13px;
+            font-weight: 500;
+            padding: 8px;
+            border-radius: 6px;
+            border: 1px solid %5;
+        }
+        QPushButton#secondaryButton:hover {
+            background-color: %5;
+            color: %4;
+            border-color: %4;
+        }
+        QPushButton#linkButton {
+            color: %4;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none;
+            border: none;
+            padding: 0;
+            background: transparent;
+        }
+        QPushButton#linkButton:hover {
+            color: #ffffff;
+            text-decoration: underline;
         }
     )")
     .arg(bgPrimary, bgPanel, bgFloating, accent, border, textPrimary, textMuted)

@@ -31,6 +31,7 @@ class LayerTreePanel;
  * - Floating controls are positioned dynamically on top with configurable margins:
  *   - ZoomControlsWidget pinned to the bottom-left with margin offset from the left/bottom edges.
  *   - RightToolPanel pinned to the top-right with margin offset from the top/right edges.
+ *   - LayerTreePanel positioned dynamically over the canvas.
  *
  * It forwards user interactions from floating tool buttons directly to the map engine and
  * dispatches coordinate hover events upwards to MainBaseUI and the TacticalStatusBar.

@@ -103,7 +103,7 @@ bool DatabaseManager::createTables()
     QSqlDatabase db = database();
     QSqlQuery query(db);
 
-    // Create layers table for persisting layer hierarchy, z-order, and visibility
+    // 1. Create layers table for persisting layer hierarchy, z-order, and visibility
     const QString createLayersTableSql =
         "CREATE TABLE IF NOT EXISTS layers ("
         "  id TEXT PRIMARY KEY,"
@@ -124,7 +124,81 @@ bool DatabaseManager::createTables()
         return false;
     }
 
+    // 2. Create tracks table for persisting tactical track telemetry
+    const QString createTracksTableSql =
+        "CREATE TABLE IF NOT EXISTS tracks ("
+        "  track_id INTEGER PRIMARY KEY,"
+        "  callsign TEXT NOT NULL,"
+        "  latitude REAL NOT NULL,"
+        "  longitude REAL NOT NULL,"
+        "  altitude REAL DEFAULT 0.0,"
+        "  heading REAL DEFAULT 0.0,"
+        "  speed REAL DEFAULT 0.0,"
+        "  identity INTEGER DEFAULT 0,"
+        "  domain INTEGER DEFAULT 0,"
+        "  symbol_code TEXT DEFAULT '',"
+        "  remarks TEXT DEFAULT '',"
+        "  report_time DATETIME,"
+        "  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
+        ");";
+
+    if (!query.exec(createTracksTableSql)) {
+        qCritical() << "[DatabaseManager] Failed to create tracks table:" << query.lastError().text();
+        return false;
+    }
+
+    // 3. Create app_settings table for user preferences, active theme, and state
+    const QString createAppSettingsTableSql =
+        "CREATE TABLE IF NOT EXISTS app_settings ("
+        "  key TEXT PRIMARY KEY,"
+        "  value TEXT NOT NULL,"
+        "  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
+        ");";
+
+    if (!query.exec(createAppSettingsTableSql)) {
+        qCritical() << "[DatabaseManager] Failed to create app_settings table:" << query.lastError().text();
+        return false;
+    }
+
     return true;
 }
 
+bool DatabaseManager::setSetting(const QString &key, const QString &value)
+{
+    if (!isOpen()) {
+        return false;
+    }
+
+    QSqlQuery query(database());
+    query.prepare(QStringLiteral(
+        "INSERT INTO app_settings (key, value, updated_at) VALUES (:key, :value, CURRENT_TIMESTAMP) "
+        "ON CONFLICT(key) DO UPDATE SET value = excluded.value, updated_at = CURRENT_TIMESTAMP;"
+    ));
+    query.bindValue(QStringLiteral(":key"), key);
+    query.bindValue(QStringLiteral(":value"), value);
+
+    if (!query.exec()) {
+        qWarning() << "[DatabaseManager] Failed to save setting:" << key << query.lastError().text();
+        return false;
+    }
+    return true;
+}
+
+QString DatabaseManager::getSetting(const QString &key, const QString &defaultValue) const
+{
+    if (!isOpen()) {
+        return defaultValue;
+    }
+
+    QSqlQuery query(database());
+    query.prepare(QStringLiteral("SELECT value FROM app_settings WHERE key = :key LIMIT 1;"));
+    query.bindValue(QStringLiteral(":key"), key);
+
+    if (query.exec() && query.next()) {
+        return query.value(0).toString();
+    }
+    return defaultValue;
+}
+
 } // namespace GISApp::Database
+

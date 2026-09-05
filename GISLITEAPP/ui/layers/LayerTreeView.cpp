@@ -39,19 +39,52 @@ void LayerTreeView::contextMenuEvent(QContextMenuEvent *event)
         return;
     }
 
+    // Ensure right-clicked row is selected
+    setCurrentIndex(index);
+
     QMenu menu(this);
     menu.setObjectName("LayerContextMenu");
 
+    // Dynamic title: Pan to Layer vs Pan to Group
+    QString panTitle = "🎯  Pan to Layer";
+    if (model()) {
+        QModelIndex childCheck = model()->index(0, 0, index);
+        if (childCheck.isValid()) {
+            panTitle = "🎯  Pan to Group";
+        }
+    }
+
+    QAction *panToAction = menu.addAction(panTitle);
+    menu.addSeparator();
     QAction *moveUpAction = menu.addAction("⬆️  Move Up");
     QAction *moveDownAction = menu.addAction("⬇️  Move Down");
     menu.addSeparator();
     QAction *toggleAction = menu.addAction("👁️  Toggle Visibility");
 
+    connect(panToAction, &QAction::triggered, this, [this, index]() {
+        emit panToTriggered(index);
+    });
     connect(moveUpAction, &QAction::triggered, this, &LayerTreeView::moveUpTriggered);
     connect(moveDownAction, &QAction::triggered, this, &LayerTreeView::moveDownTriggered);
     connect(toggleAction, &QAction::triggered, this, &LayerTreeView::toggleVisibilityTriggered);
 
     menu.exec(event->globalPos());
+}
+
+/**
+ * @brief Handles double click on a layer or group to pan to its coordinates.
+ * @param[in] event Mouse event details.
+ */
+void LayerTreeView::mouseDoubleClickEvent(QMouseEvent *event)
+{
+    QModelIndex index = indexAt(event->pos());
+    if (index.isValid()) {
+        emit panToTriggered(index);
+        event->accept();
+        return;
+    }
+
+    QTreeView::mouseDoubleClickEvent(event);
 }
 
 /**

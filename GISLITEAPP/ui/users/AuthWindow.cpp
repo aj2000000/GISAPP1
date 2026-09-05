@@ -22,9 +22,10 @@ AuthWindow::~AuthWindow()
 
 void AuthWindow::setupUi()
 {
+    setObjectName(QStringLiteral("AuthWindow"));
+    setAttribute(Qt::WA_StyledBackground, true);
     setWindowTitle(tr("GISLITE — Authentication"));
     setFixedSize(480, 640);
-    setStyleSheet("background-color: #F7FAFC;");
 
     // Center on primary screen
     if (QScreen *screen = QGuiApplication::primaryScreen()) {

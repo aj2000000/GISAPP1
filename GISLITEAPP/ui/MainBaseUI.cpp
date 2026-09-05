@@ -12,6 +12,14 @@
 #include "SqliteLayerRepository.h"
 #include "LayerController.h"
 #include "LayerTreePanel.h"
+#include "TrackRepository.h"
+#include "TacticalTrackService.h"
+#include "TrackMapRenderer.h"
+#include "TrackController.h"
+#include "TrackTableModel.h"
+#include "TrackTablePanelDialog.h"
+#include "MainApplication.h"
+#include "UdpServiceMediator.h"
 
 #include <QApplication>
 #include <QAction>
@@ -37,6 +45,12 @@ MainBaseUI::MainBaseUI(QWidget *parent, WindowStartupMode startupMode)
     , m_mapViewContainer(nullptr)
     , m_mapController(nullptr)
     , m_layerController(nullptr)
+    , m_trackRepository(nullptr)
+    , m_tacticalTrackService(nullptr)
+    , m_trackMapRenderer(nullptr)
+    , m_trackController(nullptr)
+    , m_trackTableModel(nullptr)
+    , m_trackTableDialog(nullptr)
 {
     setupUi();
     setupMenuBar();
@@ -97,6 +111,25 @@ void MainBaseUI::setupUi()
     );
     m_layerController->initialize();
 
+    // Initialize Track Repository, Tactical Track Service, Map Layer Renderer & Track Controller
+    m_trackRepository = new GISApp::Repositories::Tracks::TrackRepository(this);
+    m_tacticalTrackService = new GISApp::Services::Tracks::TacticalTrackService(m_trackRepository, this);
+    m_trackMapRenderer = new GISApp::UI::Renderers::TrackMapRenderer(m_mapViewContainer->mapWidget(), this);
+    m_trackController = new GISApp::Controllers::Tracks::TrackController(
+        m_tacticalTrackService,
+        m_trackMapRenderer,
+        m_mapController,
+        this
+    );
+    m_trackController->initialize();
+
+    // Initialize Track Table UI Model
+    m_trackTableModel = new GISApp::UIModels::Tracks::TrackTableModel(m_trackRepository, this);
+
+    m_layerController->setMapController(m_mapController);
+    m_layerController->setTrackRepository(m_trackRepository);
+    m_layerController->setTrackController(m_trackController);
+
     // 4. Tactical Status Bar (Positioned directly above standard bottom status bar)
     m_tacticalStatusBar = new GISApp::UI::TacticalStatusBar(this);
     rootLayout->addWidget(m_tacticalStatusBar);
@@ -139,6 +172,13 @@ void MainBaseUI::setupMenuBar()
     fullScreenAction->setCheckable(true);
     fullScreenAction->setChecked(m_startupMode == WindowStartupMode::FullScreen);
     fullScreenAction->setShortcut(QKeySequence(Qt::Key_F11));
+
+    // Table Menu
+    QMenu *tableMenu = menu->addMenu(tr("&Table"));
+    QMenu *trackSubMenu = tableMenu->addMenu(tr("&Track"));
+    QAction *trackTableAction = trackSubMenu->addAction(tr("Open &Track Table..."), this, &MainBaseUI::openTrackTableDialog);
+    trackTableAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_T));
+    trackTableAction->setStatusTip(tr("Open modeless tactical track table view dialog"));
 
     // Theme Menu
     QMenu *themeMenu = menu->addMenu(tr("&Theme"));
@@ -210,6 +250,8 @@ void MainBaseUI::setupConnections()
         connect(m_leftSidebar, &GISApp::UI::LeftSidebar::actionTriggered, this, [this](const QString &action) {
             if (action == "Layers" && m_layerController) {
                 m_layerController->togglePanel();
+            } else if (action == "Tracks") {
+                openTrackTableDialog();
             }
             showStatusMessage(tr("Navigation: %1").arg(action), 1500);
         });
@@ -219,6 +261,8 @@ void MainBaseUI::setupConnections()
         connect(rightToolPanel(), &GISApp::UI::RightToolPanel::toolTriggered, this, [this](const QString &tool) {
             if (tool == "Layers" && m_layerController) {
                 m_layerController->togglePanel();
+            } else if (tool == "Tracks") {
+                openTrackTableDialog();
             } else {
                 showStatusMessage(tr("Tool: %1").arg(tool), 2000);
             }
@@ -341,5 +385,23 @@ void MainBaseUI::setFullScreenMode(bool fullscreen)
 void MainBaseUI::setMaximizedMode(bool maximized)
 {
     setStartupMode(maximized ? WindowStartupMode::Maximized : WindowStartupMode::Normal);
+}
+
+void MainBaseUI::openTrackTableDialog()
+{
+    if (!m_trackTableDialog) {
+        m_trackTableDialog = new GISApp::UI::Tracks::TrackTablePanelDialog(m_trackTableModel, this);
+        connect(m_trackTableDialog, &GISApp::UI::Tracks::TrackTablePanelDialog::trackSelected,
+                this, [this](double latitude, double longitude) {
+                    if (m_mapController) {
+                        m_mapController->setCenter(latitude, longitude);
+                    }
+                });
+    }
+
+    m_trackTableDialog->show();
+    m_trackTableDialog->raise();
+    m_trackTableDialog->activateWindow();
+    showStatusMessage(tr("Opened Tactical Track Table"), 2000);
 }
 

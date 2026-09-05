@@ -16,6 +16,8 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QMouseEvent>
+#include <QShowEvent>
+#include <QTimer>
 #include <QDebug>
 #include <cmath>
 #include <algorithm>
@@ -27,10 +29,11 @@ MapWidget::MapWidget(QWidget *parent)
     , m_nativeMapWidget(nullptr)
     , m_lastReportedZoom(4.0)
     , m_lastReportedBearing(0.0)
+    , m_mapInitialized(false)
+    , m_initTimer(nullptr)
 {
     setObjectName("GISAppMapWidget");
     setupMapLibre();
-    loadInitialStyle();
 }
 
 MapWidget::~MapWidget()
@@ -80,13 +83,45 @@ void MapWidget::setupMapLibre()
                     coordinate.first, coordinate.second, 0.0, true));
             });
 
-    // Connect map state changes (zoom, bearing, loading)
-    if (m_nativeMapWidget->map()) {
-        connect(m_nativeMapWidget->map(), &QMapLibre::Map::mapChanged, this,
-                [this](QMapLibre::Map::MapChange change) {
-                    onMapLibreChange(static_cast<int>(change));
-                });
+    // Start periodic timer to detect when QMapLibre::MapWidget initializes its Map instance
+    m_initTimer = new QTimer(this);
+    connect(m_initTimer, &QTimer::timeout, this, &MapWidget::checkMapReady);
+    m_initTimer->start(30);
+}
+
+void MapWidget::showEvent(QShowEvent *event)
+{
+    QWidget::showEvent(event);
+    checkMapReady();
+}
+
+void MapWidget::checkMapReady()
+{
+    if (m_mapInitialized || !m_nativeMapWidget || !m_nativeMapWidget->map()) {
+        return;
     }
+
+    m_mapInitialized = true;
+    if (m_initTimer) {
+        m_initTimer->stop();
+        m_initTimer->deleteLater();
+        m_initTimer = nullptr;
+    }
+
+    // Connect map state changes (zoom, bearing, loading)
+    connect(m_nativeMapWidget->map(), &QMapLibre::Map::mapChanged, this,
+            [this](QMapLibre::Map::MapChange change) {
+                onMapLibreChange(static_cast<int>(change));
+            });
+
+    // Load initial style once map instance is guaranteed to be valid
+    loadInitialStyle();
+
+    m_nativeMapWidget->map()->setCoordinate(QMapLibre::Coordinate(28.6139, 77.2090));
+    m_nativeMapWidget->map()->setZoom(7.0);
+
+    qInfo() << "[MapWidget] Native MapLibre core successfully initialized and connected.";
+    emit mapReady();
 }
 
 bool MapWidget::eventFilter(QObject *watched, QEvent *event)
@@ -294,7 +329,11 @@ QString MapWidget::styleJson() const
 
 QMapLibre::Map* MapWidget::rawMap() const
 {
-    return m_nativeMapWidget ? m_nativeMapWidget->map() : nullptr;
+    if (m_nativeMapWidget && m_nativeMapWidget->map()) {
+        const_cast<MapWidget*>(this)->checkMapReady();
+        return m_nativeMapWidget->map();
+    }
+    return nullptr;
 }
 
 QMapLibre::MapWidget* MapWidget::nativeWidget() const

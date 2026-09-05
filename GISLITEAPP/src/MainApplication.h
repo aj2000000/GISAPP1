@@ -7,6 +7,10 @@
 class MainBaseUI;
 class AuthWindow;
 
+namespace GISApp::Communication::Udp {
+class UdpServiceMediator;
+}
+
 class MainApplication : public QObject
 {
     Q_OBJECT
@@ -27,6 +31,12 @@ public:
     void shutdown();
 
     MainBaseUI *mainWindow() const;
+    GISApp::Communication::Udp::UdpServiceMediator *udpMediator() const { return m_udpMediator; }
+
+    static MainApplication* instance() { return s_instance; }
+
+private:
+    inline static MainApplication *s_instance{nullptr};
 
 signals:
     void initializationCompleted();
@@ -49,6 +59,7 @@ private:
     QString m_configDir;
     AuthWindow *m_authWindow;
     MainBaseUI *m_mainWindow;
+    GISApp::Communication::Udp::UdpServiceMediator *m_udpMediator{nullptr};
 };
 
 #endif // MAINAPPLICATION_H

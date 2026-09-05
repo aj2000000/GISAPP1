@@ -89,6 +89,20 @@ public:
      */
     bool purgeLegacyLayers() override;
 
+    /**
+     * @brief Ensures a fixed/mandatory layer exists in the SQLite layers table.
+     * @param[in] prototype Prototype MapLayer definition.
+     * @return True if layer already existed or was successfully created; false on SQL error.
+     */
+    bool ensureLayerExists(const GISApp::Domain::Layers::MapLayer &prototype) override;
+
+    /**
+     * @brief Ensures a collection of fixed layers exist in the SQLite layers table.
+     * @param[in] prototypes Vector of prototype MapLayer definitions.
+     * @return True if all layers exist or were successfully created; false if any failed.
+     */
+    bool ensureFixedLayers(const QVector<GISApp::Domain::Layers::MapLayer> &prototypes) override;
+
 private:
     /**
      * @brief Populates the database with initial baseline BaseMap layer if empty.

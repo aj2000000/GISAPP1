@@ -39,6 +39,12 @@ public:
 
 signals:
     /**
+     * @brief Emitted when the user requests panning map to a selected layer or group.
+     * @param[in] index Model index of the target layer or group node.
+     */
+    void panToTriggered(const QModelIndex &index);
+
+    /**
      * @brief Emitted when the user requests promoting the selected layer via context menu or hotkey.
      */
     void moveUpTriggered();
@@ -59,6 +65,12 @@ protected:
      * @param[in] event Context menu event details.
      */
     void contextMenuEvent(QContextMenuEvent *event) override;
+
+    /**
+     * @brief Handles mouse double-click events to trigger pan to layer.
+     * @param[in] event Mouse event details.
+     */
+    void mouseDoubleClickEvent(QMouseEvent *event) override;
 
     /**
      * @brief Handles keyboard navigation (e.g. Ctrl+Up / Ctrl+Down).

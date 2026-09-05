@@ -77,6 +77,12 @@ public:
 
 signals:
     /**
+     * @brief Emitted when user clicks Pan to Layer 🎯 or double-clicks an item.
+     * @param[in] index Model index of the selected layer or group.
+     */
+    void panToRequested(const QModelIndex &index);
+
+    /**
      * @brief Emitted when user clicks Move Up ⬆️.
      */
     void moveUpRequested();
@@ -144,6 +150,7 @@ private:
     QToolButton *m_closeBtn;
 
     /// Toolbar buttons
+    QToolButton *m_panToBtn;
     QToolButton *m_moveUpBtn;
     QToolButton *m_moveDownBtn;
     QToolButton *m_toggleBtn;
