@@ -1,7 +1,7 @@
 /**
  * @file ITrackRepository.h
  * @brief Abstract repository interface contract for tactical track persistence and caching.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

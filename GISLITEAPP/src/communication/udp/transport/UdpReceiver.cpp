@@ -1,7 +1,7 @@
 /**
  * @file UdpReceiver.cpp
  * @brief Implementation of UdpReceiver socket listener thread.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

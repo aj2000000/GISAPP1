@@ -1,7 +1,7 @@
 /**
  * @file Aes256Cipher.h
  * @brief OpenSSL EVP AES-256-CBC encryption and decryption helper.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class Aes256Cipher

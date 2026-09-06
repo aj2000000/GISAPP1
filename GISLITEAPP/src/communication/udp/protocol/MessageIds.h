@@ -1,7 +1,7 @@
 /**
  * @file MessageIds.h
  * @brief Canonical numeric identifiers for UDP wire datagram payloads.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * Each incoming binary UDP packet contains a Message ID in its header that maps

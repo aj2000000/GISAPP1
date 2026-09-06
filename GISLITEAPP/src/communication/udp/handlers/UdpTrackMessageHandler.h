@@ -1,7 +1,7 @@
 /**
  * @file UdpTrackMessageHandler.h
  * @brief Strategy handler for deserializing MAIN_LITE_TRACK_MSG (Message ID: 613).
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

@@ -1,7 +1,7 @@
 /**
  * @file TrackMapRenderer.h
  * @brief MapLibre Native GPU layer renderer for tactical track visualization.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -10,6 +10,10 @@
 
 #include "BaseMapFeatureRenderer.h"
 
+namespace QMapLibre {
+class Map;
+}
+
 namespace GISApp::UI::Renderers {
 
 /**
@@ -17,11 +21,11 @@ namespace GISApp::UI::Renderers {
  * @brief Specializes BaseMapFeatureRenderer for high-performance tactical track visualization.
  *
  * Architectural Role & Responsibilities:
- * - Resides in the Presentation / View layer (ui/map/renderers/).
- * - Specializes GISApp::Core::Wrappers::BaseMapFeatureRenderer for tactical track entities.
- * - Leverages GPU Data-Driven Styling: renders tactical track entities with dynamic colors
- *   (Hostile = #ff3344, Friendly = #00d2ff, Neutral = #00e676, Unknown = #ffd600),
- *   glow halos, and callsign labels evaluated directly on MapLibre shaders.
+ * - Resides strictly in the Presentation / View layer (ui/map/renderers/).
+ * - Specializes GISApp::Core::Wrappers::BaseMapFeatureRenderer for the "source_tactical_tracks" source
+ *   and "tactical_tracks" GPU sub-layers (glow halo, core dot, callsign label).
+ * - Implements setupGpuLayers() to construct tactical track shaders and paint properties.
+ * - Remains 100% agnostic of domain models, consuming abstract IMapFeature pointers via renderFeatures().
  */
 class TrackMapRenderer : public GISApp::Core::Wrappers::BaseMapFeatureRenderer
 {
@@ -48,18 +52,25 @@ public:
 
 public slots:
     /**
-     * @brief Renders or updates tactical tracks on the map canvas using GeoJSON data.
-     * @param[in] geoJsonData GeoJSON FeatureCollection serialized as a UTF-8 QByteArray.
-     */
-    void renderTracks(const QByteArray &geoJsonData) { renderGeoJson(geoJsonData); }
-
-    /**
      * @brief Sets the visibility of tactical track layers on the map canvas.
      * @param[in] visible True to display track layers, false to hide.
      */
     void setTracksVisible(bool visible) { setFeaturesVisible(visible); }
 
 protected:
+    /**
+     * @brief Configures tactical track MapLibre GPU vector layers (glow halo, core marker, callsign label).
+     *
+     * Constructs and attaches:
+     * 1. tactical_tracks_glow: 140px semi-transparent halo evaluated from feature "color"
+     * 2. tactical_tracks_circle: 8px solid core dot with white border evaluated from feature "color"
+     * 3. tactical_tracks_label: Callsign text label positioned below the marker
+     *
+     * @param[in] map Raw QMapLibre::Map native engine instance.
+     * @param[in] visibility Initial visibility string ("visible" or "none").
+     */
+    void setupGpuLayers(QMapLibre::Map *map, const QString &visibility) override;
+
     [[nodiscard]] QString defaultColorHex() const override { return QStringLiteral("#ff3344"); }
 };
 

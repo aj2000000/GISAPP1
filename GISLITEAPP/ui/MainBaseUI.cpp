@@ -127,7 +127,6 @@ void MainBaseUI::setupUi()
     m_trackTableModel = new GISApp::UIModels::Tracks::TrackTableModel(m_trackRepository, this);
 
     m_layerController->setMapController(m_mapController);
-    m_layerController->setTrackRepository(m_trackRepository);
     m_layerController->setTrackController(m_trackController);
 
     // 4. Tactical Status Bar (Positioned directly above standard bottom status bar)
@@ -391,12 +390,10 @@ void MainBaseUI::openTrackTableDialog()
 {
     if (!m_trackTableDialog) {
         m_trackTableDialog = new GISApp::UI::Tracks::TrackTablePanelDialog(m_trackTableModel, this);
-        connect(m_trackTableDialog, &GISApp::UI::Tracks::TrackTablePanelDialog::trackSelected,
-                this, [this](double latitude, double longitude) {
-                    if (m_mapController) {
-                        m_mapController->setCenter(latitude, longitude);
-                    }
-                });
+        if (m_trackController) {
+            connect(m_trackTableDialog, &GISApp::UI::Tracks::TrackTablePanelDialog::trackSelected,
+                    m_trackController, &GISApp::Controllers::Tracks::TrackController::onTrackSelected);
+        }
     }
 
     m_trackTableDialog->show();

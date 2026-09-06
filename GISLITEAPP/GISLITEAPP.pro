@@ -3,6 +3,7 @@ QT += core gui widgets opengl network sql svg concurrent xml
 greaterThan(QT_MAJOR_VERSION, 4): QT += widgets
 
 CONFIG += c++17
+CONFIG -= flat
 
 
 # Build Output Directories
@@ -108,13 +109,18 @@ SOURCES += \
     ui/theme/ThemeManager.cpp \
     ui/users/LoginPage.cpp \
     ui/users/RegisterPage.cpp \
-    ui/users/AuthWindow.cpp
+    ui/users/AuthWindow.cpp \
+    ui/tracks/TrackDetailDialog.cpp \
+    src/common/fieldkeyvaluemapper.cpp
 
 HEADERS += \
     src/MainApplication.h \
+    src/common/fieldkeyvaluemapper.h \
     src/core/interfaces/ITablePanelDialog.h \
     src/core/interfaces/IMapFeature.h \
     src/core/interfaces/IMapFeatureRenderer.h \
+    src/core/interfaces/IContextMenuContributor.h \
+    ui/tracks/TrackDetailDialog.h \
     src/core/wrappers/BaseTablePanelDialog.h \
     src/core/wrappers/BaseMapFeatureRenderer.h \
     src/database/DatabaseManager.h \
@@ -158,6 +164,7 @@ HEADERS += \
     ui/map/MapWidget.h \
     ui/map/MapViewContainer.h \
     ui/map/renderers/TrackMapRenderer.h \
+    ui/map/renderers/TrackMapFeatureAdapter.h \
     ui/theme/ThemeManager.h \
     ui/users/LoginPage.h \
     ui/users/RegisterPage.h \

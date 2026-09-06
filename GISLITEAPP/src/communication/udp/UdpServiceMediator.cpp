@@ -1,7 +1,7 @@
 /**
  * @file UdpServiceMediator.cpp
  * @brief Implementation of UdpServiceMediator network service facade.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

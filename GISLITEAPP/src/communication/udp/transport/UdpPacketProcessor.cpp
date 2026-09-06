@@ -1,7 +1,7 @@
 /**
  * @file UdpPacketProcessor.cpp
  * @brief Implementation of UdpPacketProcessor queue and multi-packet reassembly.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

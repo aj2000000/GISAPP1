@@ -1,7 +1,7 @@
 /**
  * @file UdpPacketProcessor.h
  * @brief Thread-safe queue processing and multi-packet reassembly engine.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class UdpPacketProcessor

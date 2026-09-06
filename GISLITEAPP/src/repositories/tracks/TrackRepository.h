@@ -1,7 +1,7 @@
 /**
  * @file TrackRepository.h
  * @brief Header definition for in-memory thread-safe TrackRepository.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

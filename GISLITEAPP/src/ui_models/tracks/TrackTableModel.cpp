@@ -1,27 +1,24 @@
 /**
  * @file TrackTableModel.cpp
- * @brief Implementation of TrackTableModel for tabular tactical track presentation.
- * @author BrahmaxisGIS Development Team
+ * @brief Implementation of TrackTableModel displaying canonical STRUCT_TRACK fields.
+ * @author GISLITE Development Team
  * @date 2026
  */
 
 #include "TrackTableModel.h"
-#include "ITrackRepository.h"
-
-#include <QFont>
-#include <QDateTime>
-#include <QDebug>
+#include "fieldkeyvaluemapper.h"
 
 namespace GISApp::UIModels::Tracks {
 
 TrackTableModel::TrackTableModel(GISApp::Repositories::ITrackRepository *repo, QObject *parent)
     : QAbstractTableModel(parent)
-    , m_repo(nullptr)
+    , m_repo(repo)
 {
-    setTrackRepository(repo);
+    setupRepositoryConnections();
+    reloadTracks();
 }
 
-void TrackTableModel::setTrackRepository(GISApp::Repositories::ITrackRepository *repo)
+void TrackTableModel::setRepository(GISApp::Repositories::ITrackRepository *repo)
 {
     if (m_repo == repo) {
         return;
@@ -91,17 +88,21 @@ QVariant TrackTableModel::headerData(int section, Qt::Orientation orientation, i
 {
     if (orientation == Qt::Horizontal && role == Qt::DisplayRole) {
         switch (section) {
-        case ColumnId:          return tr("ID");
-        case ColumnCallsign:    return tr("Callsign");
-        case ColumnAffiliation: return tr("Affiliation");
-        case ColumnDomain:      return tr("Domain");
-        case ColumnLatitude:    return tr("Latitude");
-        case ColumnLongitude:   return tr("Longitude");
-        case ColumnAltitude:    return tr("Altitude");
-        case ColumnSpeed:       return tr("Speed");
-        case ColumnHeading:     return tr("Heading");
-        case ColumnReportTime:  return tr("Time (UTC)");
-        case ColumnRemarks:     return tr("Remarks");
+        case ColumnId:              return tr("Track ID");
+        case ColumnName:            return tr("Track Name");
+        case ColumnIdentity:        return tr("Identity");
+        case ColumnType:            return tr("Domain Type");
+        case ColumnSubType:         return tr("Subtype");
+        case ColumnClassification:  return tr("Classification");
+        case ColumnStrength:        return tr("Strength");
+        case ColumnActivity:        return tr("Activity");
+        case ColumnLatitude:        return tr("Latitude");
+        case ColumnLongitude:       return tr("Longitude");
+        case ColumnHeight:          return tr("Height (m)");
+        case ColumnDirection:       return tr("Direction (°)");
+        case ColumnSystemType:      return tr("System Type");
+        case ColumnReportTime:      return tr("Time (UTC)");
+        case ColumnRemarks:         return tr("Remarks");
         default: break;
         }
     } else if (orientation == Qt::Vertical && role == Qt::DisplayRole) {
@@ -121,45 +122,52 @@ QVariant TrackTableModel::data(const QModelIndex &index, int role) const
 
     const auto &track = m_tracks.at(index.row());
     const int col = index.column();
+    auto &mapper = FieldKeyValueMapper::instance();
 
     // Raw value extraction via custom user roles
     if (role == TrackIdRole) {
         return track.trackId();
     } else if (role == RawLatitudeRole) {
-        return track.latitude();
+        return track.latatitude();
     } else if (role == RawLongitudeRole) {
         return track.longitude();
-    } else if (role == RawAltitudeRole) {
-        return track.altitude();
-    } else if (role == RawSpeedRole) {
-        return track.speed();
-    } else if (role == RawHeadingRole) {
-        return track.heading();
+    } else if (role == RawHeightRole) {
+        return track.height();
+    } else if (role == RawDirectionRole) {
+        return track.dir();
     } else if (role == TrackIdentityRole) {
         return static_cast<int>(track.identity());
     }
 
-    // Display string formatting
+    // Display string formatting using FieldKeyValueMapper as source of truth
     if (role == Qt::DisplayRole) {
         switch (col) {
         case ColumnId:
             return track.trackId();
-        case ColumnCallsign:
-            return track.callsign().isEmpty() ? QStringLiteral("TRK-%1").arg(track.trackId()) : track.callsign();
-        case ColumnAffiliation:
-            return track.identityString();
-        case ColumnDomain:
-            return track.domainString();
+        case ColumnName:
+            return track.trackName();
+        case ColumnIdentity:
+            return mapper.trackIdentityMapping(track.identity());
+        case ColumnType:
+            return mapper.trackTypeMapping(track.type());
+        case ColumnSubType:
+            return mapper.trackSubTypeMapping(track.type(), track.subType());
+        case ColumnClassification:
+            return mapper.trackClassificationMapping(track.type(), track.classification());
+        case ColumnStrength:
+            return mapper.trackStrengthMapping(track.strength());
+        case ColumnActivity:
+            return mapper.trackActivityTypeMapping(track.type(), track.actType());
         case ColumnLatitude:
-            return QString::asprintf("%.5f°", track.latitude());
+            return QString::asprintf("%.5f°", track.latatitude());
         case ColumnLongitude:
             return QString::asprintf("%.5f°", track.longitude());
-        case ColumnAltitude:
-            return QString::asprintf("%.0f m", track.altitude());
-        case ColumnSpeed:
-            return QString::asprintf("%.0f km/h", track.speed());
-        case ColumnHeading:
-            return QString::asprintf("%.0f°", track.heading());
+        case ColumnHeight:
+            return QString::asprintf("%.0f m", track.height());
+        case ColumnDirection:
+            return QString::asprintf("%.0f°", track.dir());
+        case ColumnSystemType:
+            return mapper.systemTrackTypeMapping(track.systemTrackType());
         case ColumnReportTime:
             return track.reportTime().isValid() ? track.reportTime().toString(QStringLiteral("hh:mm:ss")) : QStringLiteral("--:--:--");
         case ColumnRemarks:
@@ -175,14 +183,18 @@ QVariant TrackTableModel::data(const QModelIndex &index, int role) const
         case ColumnId:
         case ColumnLatitude:
         case ColumnLongitude:
-        case ColumnAltitude:
-        case ColumnSpeed:
-        case ColumnHeading:
+        case ColumnHeight:
+        case ColumnDirection:
+        case ColumnStrength:
         case ColumnReportTime:
             return QVariant(Qt::AlignCenter);
-        case ColumnCallsign:
-        case ColumnAffiliation:
-        case ColumnDomain:
+        case ColumnName:
+        case ColumnIdentity:
+        case ColumnType:
+        case ColumnSubType:
+        case ColumnClassification:
+        case ColumnActivity:
+        case ColumnSystemType:
         case ColumnRemarks:
         default:
             return QVariant(Qt::AlignLeft | Qt::AlignVCenter);
@@ -191,7 +203,7 @@ QVariant TrackTableModel::data(const QModelIndex &index, int role) const
 
     // Tactical font emphasis
     if (role == Qt::FontRole) {
-        if (col == ColumnCallsign) {
+        if (col == ColumnName) {
             QFont font;
             font.setBold(true);
             return font;
@@ -200,17 +212,16 @@ QVariant TrackTableModel::data(const QModelIndex &index, int role) const
 
     // Tactical MIL-STD-2525 text foreground colors
     if (role == Qt::ForegroundRole) {
-        if (col == ColumnAffiliation || col == ColumnCallsign) {
+        if (col == ColumnIdentity || col == ColumnName) {
             switch (track.identity()) {
-            case GISApp::Domain::Tracks::TrackIdentity::Hostile:
+            case HOSTILE:
                 return QColor(QStringLiteral("#ff4d4f")); // Tactical Red
-            case GISApp::Domain::Tracks::TrackIdentity::Friendly:
+            case FRIENDLY:
                 return QColor(QStringLiteral("#40a9ff")); // Tactical Blue / Cyan
-            case GISApp::Domain::Tracks::TrackIdentity::Neutral:
+            case 3: // Neutral
                 return QColor(QStringLiteral("#73d13d")); // Tactical Emerald Green
-            case GISApp::Domain::Tracks::TrackIdentity::Unknown:
             default:
-                return QColor(QStringLiteral("#d9d9d9")); // Muted silver
+                return QColor(QStringLiteral("#ffd600")); // Tactical Amber / Unknown
             }
         }
     }

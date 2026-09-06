@@ -1,7 +1,7 @@
 /**
  * @file UdpReceiver.h
  * @brief High-throughput non-blocking UDP socket receiver running on a dedicated QThread.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class UdpReceiver

@@ -1,7 +1,7 @@
 /**
  * @file TrackRepository.cpp
  * @brief Thread-safe in-memory TrackRepository implementation.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -112,8 +112,10 @@ void TrackRepository::loadFromDatabase()
     }
 
     QSqlQuery query(db);
-    if (!query.exec(QStringLiteral("SELECT track_id, callsign, latitude, longitude, altitude, heading, speed, "
-                                   "identity, domain, symbol_code, remarks, report_time FROM tracks;"))) {
+    if (!query.exec(QStringLiteral("SELECT track_id, track_name, latitude, longitude, height, dir, "
+                                   "track_identity, attr_type, attr_sub_type, attr_classification, attr_strength, "
+                                   "attr_act_type, attr_act_sub_type, attr_act_classification, sys_track_type, "
+                                   "symbol_code, remarks, report_time FROM tracks;"))) {
         qWarning() << "[TrackRepository] Failed to query tracks:" << query.lastError().text();
         return;
     }
@@ -121,22 +123,31 @@ void TrackRepository::loadFromDatabase()
     QWriteLocker locker(&m_lock);
     while (query.next()) {
         int id = query.value(0).toInt();
-        QString callsign = query.value(1).toString();
+        QString name = query.value(1).toString();
         double lat = query.value(2).toDouble();
         double lon = query.value(3).toDouble();
-        double alt = query.value(4).toDouble();
-        double heading = query.value(5).toDouble();
-        double speed = query.value(6).toDouble();
-        int identityInt = query.value(7).toInt();
-        int domainInt = query.value(8).toInt();
-        QString symbol = query.value(9).toString();
-        QString remarks = query.value(10).toString();
-        QDateTime reportTime = query.value(11).toDateTime();
+        double height = query.value(4).toDouble();
+        double dir = query.value(5).toDouble();
+        IDENTITY identity = static_cast<IDENTITY>(query.value(6).toUInt());
 
-        Domain::Tracks::TacticalTrack trk(id, callsign, lat, lon, alt, heading);
-        trk.setSpeed(speed);
-        trk.setIdentity(static_cast<Domain::Tracks::TrackIdentity>(identityInt));
-        trk.setDomain(static_cast<Domain::Tracks::TrackDomain>(domainInt));
+        STRUCT_TRACK_ATTRIBUTES attr;
+        attr.type = static_cast<UINT_8>(query.value(7).toUInt());
+        attr.sub_type = static_cast<UINT_8>(query.value(8).toUInt());
+        attr.classification = static_cast<UINT_8>(query.value(9).toUInt());
+        attr.strength = static_cast<UINT_8>(query.value(10).toUInt());
+        attr.act_type = static_cast<UINT_8>(query.value(11).toUInt());
+        attr.act_sub_type = static_cast<UINT_8>(query.value(12).toUInt());
+        attr.act_classification = static_cast<UINT_8>(query.value(13).toUInt());
+
+        SYSTEM_TRACK_TYPE sysType = static_cast<SYSTEM_TRACK_TYPE>(query.value(14).toUInt());
+        QString symbol = query.value(15).toString();
+        QString remarks = query.value(16).toString();
+        QDateTime reportTime = query.value(17).toDateTime();
+
+        Domain::Tracks::TacticalTrack trk(id, name, lat, lon, height, dir);
+        trk.setIdentity(identity);
+        trk.setAttributes(attr);
+        trk.setSystemTrackType(sysType);
         trk.setSymbolCode(symbol);
         trk.setRemarks(remarks);
         if (reportTime.isValid()) {
@@ -156,20 +167,30 @@ void TrackRepository::saveTrackToDatabase(const Domain::Tracks::TacticalTrack &t
     QSqlQuery query(db);
     query.prepare(QStringLiteral(
         "INSERT INTO tracks ("
-        "  track_id, callsign, latitude, longitude, altitude, heading, speed, "
-        "  identity, domain, symbol_code, remarks, report_time, updated_at"
+        "  track_id, track_name, latitude, longitude, height, dir, "
+        "  track_identity, attr_type, attr_sub_type, attr_classification, attr_strength, "
+        "  attr_act_type, attr_act_sub_type, attr_act_classification, sys_track_type, "
+        "  symbol_code, remarks, report_time, updated_at"
         ") VALUES ("
-        "  :track_id, :callsign, :latitude, :longitude, :altitude, :heading, :speed, "
-        "  :identity, :domain, :symbol_code, :remarks, :report_time, CURRENT_TIMESTAMP"
+        "  :track_id, :track_name, :latitude, :longitude, :height, :dir, "
+        "  :track_identity, :attr_type, :attr_sub_type, :attr_classification, :attr_strength, "
+        "  :attr_act_type, :attr_act_sub_type, :attr_act_classification, :sys_track_type, "
+        "  :symbol_code, :remarks, :report_time, CURRENT_TIMESTAMP"
         ") ON CONFLICT(track_id) DO UPDATE SET "
-        "  callsign = excluded.callsign, "
+        "  track_name = excluded.track_name, "
         "  latitude = excluded.latitude, "
         "  longitude = excluded.longitude, "
-        "  altitude = excluded.altitude, "
-        "  heading = excluded.heading, "
-        "  speed = excluded.speed, "
-        "  identity = excluded.identity, "
-        "  domain = excluded.domain, "
+        "  height = excluded.height, "
+        "  dir = excluded.dir, "
+        "  track_identity = excluded.track_identity, "
+        "  attr_type = excluded.attr_type, "
+        "  attr_sub_type = excluded.attr_sub_type, "
+        "  attr_classification = excluded.attr_classification, "
+        "  attr_strength = excluded.attr_strength, "
+        "  attr_act_type = excluded.attr_act_type, "
+        "  attr_act_sub_type = excluded.attr_act_sub_type, "
+        "  attr_act_classification = excluded.attr_act_classification, "
+        "  sys_track_type = excluded.sys_track_type, "
         "  symbol_code = excluded.symbol_code, "
         "  remarks = excluded.remarks, "
         "  report_time = excluded.report_time, "
@@ -177,14 +198,20 @@ void TrackRepository::saveTrackToDatabase(const Domain::Tracks::TacticalTrack &t
     ));
 
     query.bindValue(":track_id", track.trackId());
-    query.bindValue(":callsign", track.callsign());
-    query.bindValue(":latitude", track.latitude());
+    query.bindValue(":track_name", track.trackName());
+    query.bindValue(":latitude", track.latatitude());
     query.bindValue(":longitude", track.longitude());
-    query.bindValue(":altitude", track.altitude());
-    query.bindValue(":heading", track.heading());
-    query.bindValue(":speed", track.speed());
-    query.bindValue(":identity", static_cast<int>(track.identity()));
-    query.bindValue(":domain", static_cast<int>(track.domain()));
+    query.bindValue(":height", track.height());
+    query.bindValue(":dir", track.dir());
+    query.bindValue(":track_identity", static_cast<int>(track.identity()));
+    query.bindValue(":attr_type", static_cast<int>(track.type()));
+    query.bindValue(":attr_sub_type", static_cast<int>(track.subType()));
+    query.bindValue(":attr_classification", static_cast<int>(track.classification()));
+    query.bindValue(":attr_strength", static_cast<int>(track.strength()));
+    query.bindValue(":attr_act_type", static_cast<int>(track.actType()));
+    query.bindValue(":attr_sub_type", static_cast<int>(track.actSubType()));
+    query.bindValue(":attr_act_classification", static_cast<int>(track.actClassification()));
+    query.bindValue(":sys_track_type", static_cast<int>(track.systemTrackType()));
     query.bindValue(":symbol_code", track.symbolCode());
     query.bindValue(":remarks", track.remarks());
     query.bindValue(":report_time", track.reportTime().toString(Qt::ISODate));

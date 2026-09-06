@@ -1,7 +1,7 @@
 /**
  * @file TrackTablePanelDialog.h
  * @brief Tactical track table panel dialog extending BaseTablePanelDialog.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

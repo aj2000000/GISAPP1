@@ -1,7 +1,7 @@
 /**
  * @file IMapFeature.h
  * @brief Pure virtual interface modeling any geographic entity renderable on the MapLibre canvas.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

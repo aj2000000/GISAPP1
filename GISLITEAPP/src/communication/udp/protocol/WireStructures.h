@@ -1,7 +1,7 @@
 /**
  * @file WireStructures.h
  * @brief Packed binary wire layout structures for network serialization and deserialization.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * Defines binary wire protocol structures with byte-aligned packing (#pragma pack(push, 1)).
@@ -132,24 +132,6 @@ typedef struct __attribute__ ((packed))
     STRUCT_TIME time; ///< Time element
 } STRUCT_DATE_TIME;
 
-/**
- * @struct STRUCT_TRACK_PAYLOAD
- * @brief Packed binary wire record for individual tactical track.
- */
-typedef struct __attribute__ ((packed))
-{
-    UINT_32                 track_id;           ///< Unique numerical track ID
-    STRING_100              track_name;         ///< Designated track callsign/name
-    STRUCT_LOCATION         track_loc;          ///< Geographic position & kinematics (lat, lon, height, dir)
-    IDENTITY                track_identity;     ///< Friendly (2), Hostile (1), Neutral (3), Unknown (0)
-    STRUCT_TRACK_ATTRIBUTES track_attributes;   ///< Domain and operational attributes
-    SYSTEM_TRACK_TYPE       sys_track_type;     ///< System track designation
-    UINT_8                  no_of_sources;      ///< Number of contributing sensor sources
-    STRUCT_TRACK_SYMBOL     track_symbol;       ///< Tactical map symbol representation
-    STRUCT_DATE_TIME        track_report_time;  ///< Timestamp of detection/report
-    STRING_100              track_remarks;      ///< Freeform operational remarks
-} STRUCT_TRACK_PAYLOAD;
-
 #pragma pack(pop)
 
 /**
@@ -158,8 +140,7 @@ typedef struct __attribute__ ((packed))
  */
 typedef struct
 {
-    STRUCT_MESSAGE_HEADER   msg_header;         ///< Embedded message header
-    UINT_8                  track_id;           ///< Unique numerical track ID
+    UINT_32                  track_id;           ///< Unique numerical track ID
     STRING_100              track_name;         ///< Designated track callsign/name
     STRUCT_LOCATION         track_loc;          ///< Geographic position & kinematics
     IDENTITY                track_identity;     ///< Friendly, Hostile, Neutral, Unknown

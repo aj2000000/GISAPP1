@@ -1,7 +1,7 @@
 /**
  * @file UdpDataStore.cpp
  * @brief Implementation of UdpDataStore configuration and state management.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

@@ -6,7 +6,6 @@
 #include "LayerController.h"
 #include "LayerTreeModel.h"
 #include "ILayerRepository.h"
-#include "ITrackRepository.h"
 #include "MapWidget.h"
 #include "MapController.h"
 #include "TrackController.h"
@@ -93,11 +92,6 @@ void LayerController::togglePanel()
 void LayerController::setMapController(GISApp::Controllers::MapController *mapController)
 {
     m_mapController = mapController;
-}
-
-void LayerController::setTrackRepository(GISApp::Repositories::ITrackRepository *trackRepo)
-{
-    m_trackRepository = trackRepo;
 }
 
 void LayerController::setTrackController(GISApp::Controllers::Tracks::TrackController *trackController)
@@ -238,19 +232,9 @@ void LayerController::panToLayer(const QModelIndex &index)
 
         bool foundCoordinates = false;
         for (const auto *l : groupLayers) {
-            if (l && l->id() == "tactical_tracks" && m_trackRepository) {
-                auto tracks = m_trackRepository->getAllTracks();
-                if (!tracks.isEmpty()) {
-                    double sumLat = 0.0;
-                    double sumLon = 0.0;
-                    for (const auto &t : tracks) {
-                        sumLat += t.latitude();
-                        sumLon += t.longitude();
-                    }
-                    targetLat = sumLat / tracks.size();
-                    targetLon = sumLon / tracks.size();
-                    targetZoom = 9.5;
-                    foundCoordinates = true;
+            if (l && l->id() == "tactical_tracks" && m_trackController) {
+                foundCoordinates = m_trackController->calculateTracksCenter(targetLat, targetLon, targetZoom);
+                if (foundCoordinates) {
                     break;
                 }
             }
@@ -266,23 +250,12 @@ void LayerController::panToLayer(const QModelIndex &index)
         qInfo() << "[LayerController] Pan to Layer requested:" << layer->name() << "(" << layer->id() << ")";
 
         if (layer->id() == "tactical_tracks") {
-            if (m_trackRepository) {
-                auto tracks = m_trackRepository->getAllTracks();
-                if (!tracks.isEmpty()) {
-                    double sumLat = 0.0;
-                    double sumLon = 0.0;
-                    for (const auto &t : tracks) {
-                        sumLat += t.latitude();
-                        sumLon += t.longitude();
-                    }
-                    targetLat = sumLat / tracks.size();
-                    targetLon = sumLon / tracks.size();
-                    targetZoom = 10.0;
-                } else {
-                    targetLat = 12.9716;
-                    targetLon = 77.5946;
-                    targetZoom = 7.0;
-                }
+            if (m_trackController && m_trackController->calculateTracksCenter(targetLat, targetLon, targetZoom)) {
+                targetZoom = 10.0;
+            } else {
+                targetLat = 12.9716;
+                targetLon = 77.5946;
+                targetZoom = 7.0;
             }
         } else if (layer->id() == "background") {
             targetLat = 12.9716;

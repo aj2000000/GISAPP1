@@ -1,7 +1,7 @@
 /**
  * @file IMapFeatureRenderer.h
  * @brief Pure virtual interface defining lifecycle and layer management for MapLibre map renderers.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

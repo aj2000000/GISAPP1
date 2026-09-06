@@ -1,7 +1,7 @@
 /**
  * @file BaseMapFeatureRenderer.h
  * @brief Reusable base renderer implementing GPU data-driven MapLibre layer management.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -108,18 +108,16 @@ protected:
     virtual void ensureLayersConfigured();
 
     /**
-     * @brief Sets up the standard data-driven GPU layers (glow, core marker, label).
-     * @param[in] map Raw QMapLibre::Map instance.
-     * @param[in] visibility "visible" or "none".
+     * @brief Pure virtual hook configuring entity-specific MapLibre GPU vector layers and shaders.
+     *
+     * Subclasses (e.g. TrackMapRenderer, RadarMapRenderer, ZoneMapRenderer) MUST implement this
+     * method to construct their specific visual layers (glow, markers, lines, polygons, labels)
+     * and register their layer IDs in m_layerIds.
+     *
+     * @param[in] map Pointer to active QMapLibre::Map native engine instance.
+     * @param[in] visibility Initial visibility string ("visible" or "none").
      */
-    virtual void setupGpuLayers(QMapLibre::Map *map, const QString &visibility);
-
-    /**
-     * @brief Virtual hook allowing derived classes to inject specialized GPU layers (e.g. directional icons, range rings).
-     * @param[in] map Raw QMapLibre::Map instance.
-     * @param[in] visibility "visible" or "none".
-     */
-    virtual void setupCustomGpuLayers(QMapLibre::Map *map, const QString &visibility);
+    virtual void setupGpuLayers(QMapLibre::Map *map, const QString &visibility) = 0;
 
     /**
      * @brief Returns the fallback color hex used when a feature doesn't provide one.

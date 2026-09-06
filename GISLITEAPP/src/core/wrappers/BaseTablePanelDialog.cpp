@@ -1,7 +1,7 @@
 /**
  * @file BaseTablePanelDialog.cpp
  * @brief Implementation of BaseTablePanelDialog reusable tactical table dialog.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

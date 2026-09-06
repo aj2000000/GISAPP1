@@ -1,7 +1,7 @@
 /**
  * @file UdpSender.h
  * @brief Outbound UDP datagram transmission worker supporting automatic multi-packet chunking.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class UdpSender

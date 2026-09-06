@@ -1,7 +1,7 @@
 /**
  * @file UdpServiceMediator.h
  * @brief High-level Service Layer Facade orchestrating the entire UDP communication subsystem.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class UdpServiceMediator

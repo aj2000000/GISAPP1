@@ -1,7 +1,7 @@
 /**
  * @file BaseTablePanelDialog.h
  * @brief Reusable base wrapper implementing standard tactical table dialog UI and behavior.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

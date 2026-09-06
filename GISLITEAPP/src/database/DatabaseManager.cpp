@@ -58,9 +58,11 @@ bool DatabaseManager::initialize(const QString &dbPath)
     }
 
     // Enable foreign keys and write-ahead logging (WAL) for performance
-    QSqlQuery pragmaQuery(db);
-    pragmaQuery.exec("PRAGMA foreign_keys = ON;");
-    pragmaQuery.exec("PRAGMA journal_mode = WAL;");
+    {
+        QSqlQuery pragmaQuery(db);
+        pragmaQuery.exec("PRAGMA foreign_keys = ON;");
+        pragmaQuery.exec("PRAGMA journal_mode = WAL;");
+    }
 
     if (!createTables()) {
         qCritical() << "[DatabaseManager] Schema initialization failed.";
@@ -101,7 +103,6 @@ QSqlDatabase DatabaseManager::database() const
 bool DatabaseManager::createTables()
 {
     QSqlDatabase db = database();
-    QSqlQuery query(db);
 
     // 1. Create layers table for persisting layer hierarchy, z-order, and visibility
     const QString createLayersTableSql =
@@ -119,32 +120,75 @@ bool DatabaseManager::createTables()
         "  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
         ");";
 
-    if (!query.exec(createLayersTableSql)) {
-        qCritical() << "[DatabaseManager] Failed to create layers table:" << query.lastError().text();
-        return false;
+    {
+        QSqlQuery query(db);
+        if (!query.exec(createLayersTableSql)) {
+            qCritical() << "[DatabaseManager] Failed to create layers table:" << query.lastError().text();
+            return false;
+        }
     }
 
-    // 2. Create tracks table for persisting tactical track telemetry
+    // 2. Validate tracks table schema and migrate if obsolete columns are detected
+    bool shouldRecreateTracks = false;
+    {
+        QSqlQuery schemaQuery(db);
+        if (schemaQuery.exec(QStringLiteral("PRAGMA table_info(tracks);"))) {
+            bool hasTrackName = false;
+            bool hasObsoleteSpeed = false;
+            int columnCount = 0;
+            while (schemaQuery.next()) {
+                ++columnCount;
+                const QString colName = schemaQuery.value(1).toString();
+                if (colName == QStringLiteral("track_name")) {
+                    hasTrackName = true;
+                } else if (colName == QStringLiteral("speed")) {
+                    hasObsoleteSpeed = true;
+                }
+            }
+            if (columnCount > 0 && (!hasTrackName || hasObsoleteSpeed)) {
+                shouldRecreateTracks = true;
+            }
+        }
+    }
+
+    if (shouldRecreateTracks) {
+        qInfo() << "[DatabaseManager] Detected obsolete tracks schema. Recreating tracks table with canonical wire schema...";
+        QSqlQuery dropQuery(db);
+        if (!dropQuery.exec(QStringLiteral("DROP TABLE tracks;"))) {
+            qWarning() << "[DatabaseManager] Failed to drop obsolete tracks table:" << dropQuery.lastError().text();
+        }
+    }
+
+    // Create tracks table for persisting tactical track telemetry
     const QString createTracksTableSql =
         "CREATE TABLE IF NOT EXISTS tracks ("
         "  track_id INTEGER PRIMARY KEY,"
-        "  callsign TEXT NOT NULL,"
+        "  track_name TEXT NOT NULL,"
         "  latitude REAL NOT NULL,"
         "  longitude REAL NOT NULL,"
-        "  altitude REAL DEFAULT 0.0,"
-        "  heading REAL DEFAULT 0.0,"
-        "  speed REAL DEFAULT 0.0,"
-        "  identity INTEGER DEFAULT 0,"
-        "  domain INTEGER DEFAULT 0,"
+        "  height REAL DEFAULT 0.0,"
+        "  dir REAL DEFAULT 0.0,"
+        "  track_identity INTEGER DEFAULT 0,"
+        "  attr_type INTEGER DEFAULT 0,"
+        "  attr_sub_type INTEGER DEFAULT 0,"
+        "  attr_classification INTEGER DEFAULT 0,"
+        "  attr_strength INTEGER DEFAULT 1,"
+        "  attr_act_type INTEGER DEFAULT 0,"
+        "  attr_act_sub_type INTEGER DEFAULT 0,"
+        "  attr_act_classification INTEGER DEFAULT 0,"
+        "  sys_track_type INTEGER DEFAULT 1,"
         "  symbol_code TEXT DEFAULT '',"
         "  remarks TEXT DEFAULT '',"
         "  report_time DATETIME,"
         "  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
         ");";
 
-    if (!query.exec(createTracksTableSql)) {
-        qCritical() << "[DatabaseManager] Failed to create tracks table:" << query.lastError().text();
-        return false;
+    {
+        QSqlQuery query(db);
+        if (!query.exec(createTracksTableSql)) {
+            qCritical() << "[DatabaseManager] Failed to create tracks table:" << query.lastError().text();
+            return false;
+        }
     }
 
     // 3. Create app_settings table for user preferences, active theme, and state
@@ -155,9 +199,12 @@ bool DatabaseManager::createTables()
         "  updated_at DATETIME DEFAULT CURRENT_TIMESTAMP"
         ");";
 
-    if (!query.exec(createAppSettingsTableSql)) {
-        qCritical() << "[DatabaseManager] Failed to create app_settings table:" << query.lastError().text();
-        return false;
+    {
+        QSqlQuery query(db);
+        if (!query.exec(createAppSettingsTableSql)) {
+            qCritical() << "[DatabaseManager] Failed to create app_settings table:" << query.lastError().text();
+            return false;
+        }
     }
 
     return true;

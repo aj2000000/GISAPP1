@@ -16,11 +16,18 @@
 #include <QCoreApplication>
 #include <QFileInfo>
 #include <QMouseEvent>
+#include <QContextMenuEvent>
 #include <QShowEvent>
 #include <QTimer>
+#include <QMenu>
+#include <QAction>
+#include <QClipboard>
+#include <QGuiApplication>
 #include <QDebug>
 #include <cmath>
 #include <algorithm>
+
+#include "IContextMenuContributor.h"
 
 namespace GISApp::UI {
 
@@ -126,11 +133,100 @@ void MapWidget::checkMapReady()
 
 bool MapWidget::eventFilter(QObject *watched, QEvent *event)
 {
-    if (watched == m_nativeMapWidget && event->type() == QEvent::MouseMove) {
-        auto *mouseEvent = static_cast<QMouseEvent*>(event);
-        handleHoverPosition(mouseEvent->position());
+    if (watched == m_nativeMapWidget) {
+        if (event->type() == QEvent::MouseMove) {
+            auto *mouseEvent = static_cast<QMouseEvent*>(event);
+            handleHoverPosition(mouseEvent->position());
+        } else if (event->type() == QEvent::ContextMenu) {
+            auto *contextEvent = static_cast<QContextMenuEvent*>(event);
+            showContextMenu(contextEvent->pos(), contextEvent->globalPos());
+            return true;
+        } else if (event->type() == QEvent::MouseButtonRelease) {
+            auto *mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() == Qt::RightButton) {
+                showContextMenu(mouseEvent->position(), mouseEvent->globalPosition().toPoint());
+                return true;
+            }
+        }
     }
     return QWidget::eventFilter(watched, event);
+}
+
+void MapWidget::registerContextMenuContributor(GISApp::Core::Interfaces::IContextMenuContributor *contributor)
+{
+    if (contributor && !m_contextMenuContributors.contains(contributor)) {
+        m_contextMenuContributors.append(contributor);
+    }
+}
+
+void MapWidget::unregisterContextMenuContributor(GISApp::Core::Interfaces::IContextMenuContributor *contributor)
+{
+    m_contextMenuContributors.removeAll(contributor);
+}
+
+void MapWidget::showContextMenu(const QPointF &pos, const QPoint &globalPos)
+{
+    if (!m_nativeMapWidget || !m_nativeMapWidget->map()) {
+        return;
+    }
+
+    QMapLibre::Coordinate coord = m_nativeMapWidget->map()->coordinateForPixel(pos);
+    if (std::isnan(coord.first) || std::isnan(coord.second)) {
+        return;
+    }
+
+    QMenu menu(this);
+    menu.setStyleSheet(QStringLiteral(
+        "QMenu { background-color: #121820; color: #e2e8f0; border: 1px solid #2d3748; padding: 4px; border-radius: 6px; }"
+        "QMenu::item { padding: 6px 24px 6px 12px; border-radius: 4px; font-size: 12px; }"
+        "QMenu::item:selected { background-color: #00d2ff; color: #0a0e14; font-weight: bold; }"
+        "QMenu::separator { height: 1px; background: #2d3748; margin: 4px 8px; }"
+    ));
+
+    // Sort contributors by priority descending
+    auto sortedContributors = m_contextMenuContributors;
+    std::sort(sortedContributors.begin(), sortedContributors.end(), [](auto *a, auto *b) {
+        return a->priority() > b->priority();
+    });
+
+    bool hasDomainActions = false;
+    for (auto *contributor : sortedContributors) {
+        if (contributor && contributor->contributeActions(&menu, pos.toPoint(), QPointF(coord.first, coord.second))) {
+            hasDomainActions = true;
+        }
+    }
+
+    if (hasDomainActions) {
+        menu.addSeparator();
+    }
+
+    // Base map global actions
+    const double lat = coord.first;
+    const double lon = coord.second;
+    QString coordText = QStringLiteral("%1° N, %2° E")
+                            .arg(QString::number(std::abs(lat), 'f', 4))
+                            .arg(QString::number(std::abs(lon), 'f', 4));
+    if (lat < 0) coordText.replace("N", "S");
+    if (lon < 0) coordText.replace("E", "W");
+
+    QAction *copyCoordAction = menu.addAction(QStringLiteral("📋 Copy Coordinates (%1)").arg(coordText));
+    connect(copyCoordAction, &QAction::triggered, this, [coordText]() {
+        QGuiApplication::clipboard()->setText(coordText);
+    });
+
+    QAction *centerAction = menu.addAction(QStringLiteral("🎯 Center Map Here"));
+    connect(centerAction, &QAction::triggered, this, [this, lat, lon]() {
+        setCenter(lat, lon);
+    });
+
+    menu.addSeparator();
+    QAction *zoomInAction = menu.addAction(QStringLiteral("🔍+ Zoom In"));
+    connect(zoomInAction, &QAction::triggered, this, [this]() { zoomIn(); });
+
+    QAction *zoomOutAction = menu.addAction(QStringLiteral("🔍- Zoom Out"));
+    connect(zoomOutAction, &QAction::triggered, this, [this]() { zoomOut(); });
+
+    menu.exec(globalPos);
 }
 
 void MapWidget::mouseMoveEvent(QMouseEvent *event)

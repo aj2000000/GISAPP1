@@ -1,7 +1,7 @@
 /**
  * @file BaseMapFeatureRenderer.cpp
  * @brief Implementation of BaseMapFeatureRenderer managing MapLibre GPU layers and data-driven styling.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -163,121 +163,10 @@ void BaseMapFeatureRenderer::ensureLayersConfigured()
 
     const QString visStr = m_featuresVisible ? QStringLiteral("visible") : QStringLiteral("none");
 
-    // 2. Setup standard data-driven GPU layers
+    // 2. Setup entity-specific GPU layers (delegated to specialized subclass)
     setupGpuLayers(map, visStr);
 
-    // 3. Virtual hook for custom layers
-    setupCustomGpuLayers(map, visStr);
-
     m_layersConfigured = true;
-}
-
-void BaseMapFeatureRenderer::setupGpuLayers(QMapLibre::Map *map, const QString &visibility)
-{
-    const QString glowLayerId = m_layerPrefix + QStringLiteral("_glow");
-    const QString circleLayerId = m_layerPrefix + QStringLiteral("_circle");
-    const QString labelLayerId = m_layerPrefix + QStringLiteral("_label");
-
-    // Expression for dynamic data-driven color: ["coalesce", ["get", "color"], defaultColorHex]
-    const QVariant colorExpression = QVariantList{
-        QStringLiteral("coalesce"),
-        QVariantList{QStringLiteral("get"), QStringLiteral("color")},
-        defaultColorHex()
-    };
-
-    // 1. Outer Glow Halo Layer
-    if (!map->layerExists(glowLayerId)) {
-        QVariantMap glowLayer;
-        glowLayer[QStringLiteral("id")] = glowLayerId;
-        glowLayer[QStringLiteral("type")] = QStringLiteral("circle");
-        glowLayer[QStringLiteral("source")] = m_sourceId;
-
-        QVariantMap glowPaint;
-        glowPaint[QStringLiteral("circle-radius")] = 140.0;
-        glowPaint[QStringLiteral("circle-color")] = colorExpression;
-        glowPaint[QStringLiteral("circle-opacity")] = 0.35;
-        glowPaint[QStringLiteral("circle-stroke-width")] = 0.0;
-        glowLayer[QStringLiteral("paint")] = glowPaint;
-
-        QVariantMap glowLayout;
-        glowLayout[QStringLiteral("visibility")] = visibility;
-        glowLayer[QStringLiteral("layout")] = glowLayout;
-
-        map->addLayer(glowLayerId, glowLayer);
-        if (!m_layerIds.contains(glowLayerId)) {
-            m_layerIds.append(glowLayerId);
-        }
-        qDebug() << "[BaseMapFeatureRenderer] Added GPU glow layer:" << glowLayerId;
-    }
-
-    // 2. Core Marker Circle Layer
-    if (!map->layerExists(circleLayerId)) {
-        QVariantMap circleLayer;
-        circleLayer[QStringLiteral("id")] = circleLayerId;
-        circleLayer[QStringLiteral("type")] = QStringLiteral("circle");
-        circleLayer[QStringLiteral("source")] = m_sourceId;
-
-        QVariantMap circlePaint;
-        circlePaint[QStringLiteral("circle-radius")] = 8.0;
-        circlePaint[QStringLiteral("circle-color")] = colorExpression;
-        circlePaint[QStringLiteral("circle-stroke-width")] = 2.0;
-        circlePaint[QStringLiteral("circle-stroke-color")] = QStringLiteral("#ffffff");
-        circlePaint[QStringLiteral("circle-opacity")] = 1.0;
-        circleLayer[QStringLiteral("paint")] = circlePaint;
-
-        QVariantMap circleLayout;
-        circleLayout[QStringLiteral("visibility")] = visibility;
-        circleLayer[QStringLiteral("layout")] = circleLayout;
-
-        map->addLayer(circleLayerId, circleLayer);
-        if (!m_layerIds.contains(circleLayerId)) {
-            m_layerIds.append(circleLayerId);
-        }
-        qDebug() << "[BaseMapFeatureRenderer] Added GPU core layer:" << circleLayerId;
-    }
-
-    // 3. Callsign / Label Symbol Layer
-    if (!map->layerExists(labelLayerId)) {
-        QVariantMap labelLayer;
-        labelLayer[QStringLiteral("id")] = labelLayerId;
-        labelLayer[QStringLiteral("type")] = QStringLiteral("symbol");
-        labelLayer[QStringLiteral("source")] = m_sourceId;
-
-        QVariantMap labelLayout;
-        labelLayout[QStringLiteral("text-field")] = QVariantList{
-            QStringLiteral("coalesce"),
-            QVariantList{QStringLiteral("get"), QStringLiteral("callsign")},
-            QStringLiteral("")
-        };
-        labelLayout[QStringLiteral("text-size")] = 11.0;
-        labelLayout[QStringLiteral("text-offset")] = QVariantList{0.0, 1.3};
-        labelLayout[QStringLiteral("text-anchor")] = QStringLiteral("top");
-        labelLayout[QStringLiteral("text-font")] = QVariantList{
-            QStringLiteral("Open Sans Regular"),
-            QStringLiteral("Arial Unicode MS Regular")
-        };
-        labelLayout[QStringLiteral("visibility")] = visibility;
-        labelLayer[QStringLiteral("layout")] = labelLayout;
-
-        QVariantMap labelPaint;
-        labelPaint[QStringLiteral("text-color")] = QStringLiteral("#ffffff");
-        labelPaint[QStringLiteral("text-halo-color")] = QStringLiteral("#10141a");
-        labelPaint[QStringLiteral("text-halo-width")] = 1.5;
-        labelLayer[QStringLiteral("paint")] = labelPaint;
-
-        map->addLayer(labelLayerId, labelLayer);
-        if (!m_layerIds.contains(labelLayerId)) {
-            m_layerIds.append(labelLayerId);
-        }
-        qDebug() << "[BaseMapFeatureRenderer] Added GPU label layer:" << labelLayerId;
-    }
-}
-
-void BaseMapFeatureRenderer::setupCustomGpuLayers(QMapLibre::Map *map, const QString &visibility)
-{
-    Q_UNUSED(map);
-    Q_UNUSED(visibility);
-    // Base implementation is a no-op; specialized derived renderers override this.
 }
 
 void BaseMapFeatureRenderer::pushGeoJsonToMap(const QByteArray &geoJsonData)

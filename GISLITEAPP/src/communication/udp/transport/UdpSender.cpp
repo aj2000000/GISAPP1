@@ -1,7 +1,7 @@
 /**
  * @file UdpSender.cpp
  * @brief Implementation of UdpSender datagram transmission and multi-packet chunking.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

@@ -873,6 +873,108 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         }
 
         /* =======================================================
+           Tactical Track Detail & Inspector Dialogs
+           ======================================================= */
+        QDialog#TrackDetailDialog,
+        QDialog#TrackEditDialog {
+            background-color: %2;
+            color: %6;
+            border: 1px solid %5;
+            border-radius: 8px;
+        }
+        QDialog#TrackDetailDialog QScrollArea,
+        QDialog#TrackDetailDialog QScrollArea > QWidget > QWidget,
+        QDialog#TrackDetailDialog QWidget#scrollContent {
+            background-color: %2;
+            border: none;
+        }
+        QDialog#TrackDetailDialog QGroupBox,
+        QDialog#TrackEditDialog QGroupBox {
+            background-color: %1;
+            font-size: 11px;
+            font-weight: bold;
+            color: %4;
+            border: 1px solid %5;
+            border-radius: 6px;
+            margin-top: 16px;
+            padding-top: 16px;
+            padding-bottom: 10px;
+        }
+        QDialog#TrackDetailDialog QGroupBox::title,
+        QDialog#TrackEditDialog QGroupBox::title {
+            subcontrol-origin: margin;
+            subcontrol-position: top left;
+            left: 12px;
+            padding: 2px 6px;
+            background-color: %2;
+            color: %4;
+            border: 1px solid %5;
+            border-radius: 3px;
+        }
+        QLabel#TrackDetailCaption {
+            color: %7;
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.5px;
+            background: transparent;
+        }
+        QLabel#TrackDetailValue {
+            color: %6;
+            background-color: %2;
+            border: 1px solid %5;
+            border-radius: 4px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        QLabel#TrackDetailTitle {
+            font-size: 18px;
+            font-weight: bold;
+            color: %6;
+            background: transparent;
+        }
+        QLabel#TrackDetailIdentityBadge {
+            font-weight: bold;
+            padding: 2px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+        }
+        QLabel#TrackDetailIdentityBadge[identity="HOSTILE"] {
+            background-color: #7f1d1d;
+            color: #fca5a5;
+            border: 1px solid #ef4444;
+        }
+        QLabel#TrackDetailIdentityBadge[identity="FRIENDLY"] {
+            background-color: #0c4a6e;
+            color: #7dd3fc;
+            border: 1px solid #00d2ff;
+        }
+        QLabel#TrackDetailIdentityBadge[identity="NEUTRAL"] {
+            background-color: #14532d;
+            color: #86efac;
+            border: 1px solid #22c55e;
+        }
+        QLabel#TrackDetailIdentityBadge[identity="UNKNOWN"] {
+            background-color: #713f12;
+            color: #fde047;
+            border: 1px solid #eab308;
+        }
+        QPushButton#TrackDetailCloseBtn {
+            background-color: %1;
+            color: %6;
+            border: 1px solid %5;
+            padding: 8px 24px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        QPushButton#TrackDetailCloseBtn:hover {
+            background-color: %5;
+            color: %4;
+            border-color: %4;
+        }
+
+        /* =======================================================
            Authentication Window & Auth Pages (Login & Register)
            ======================================================= */
         QWidget#AuthWindow {

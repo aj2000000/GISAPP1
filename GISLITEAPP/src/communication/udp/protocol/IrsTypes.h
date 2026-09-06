@@ -1,7 +1,7 @@
 /**
  * @file IrsTypes.h
  * @brief Interface Requirements Specification (IRS) fundamental types and system constants.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * This header defines cross-platform fundamental data types, bit-width specific typedefs,

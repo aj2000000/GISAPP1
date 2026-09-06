@@ -1,7 +1,7 @@
 /**
  * @file TrackTablePanelDialog.cpp
  * @brief Implementation of TrackTablePanelDialog specializing BaseTablePanelDialog.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -141,13 +141,13 @@ void TrackTablePanelDialog::updateStatistics()
 
     for (const auto &t : allTracks) {
         switch (t.identity()) {
-        case GISApp::Domain::Tracks::TrackIdentity::Hostile:
+        case HOSTILE:
             hostiles++;
             break;
-        case GISApp::Domain::Tracks::TrackIdentity::Friendly:
+        case FRIENDLY:
             friendlies++;
             break;
-        case GISApp::Domain::Tracks::TrackIdentity::Neutral:
+        case 3: // Neutral
             neutrals++;
             break;
         default:
@@ -177,18 +177,24 @@ void TrackTablePanelDialog::configureColumnWidths()
         return;
     }
 
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnId, 60);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnCallsign, 110);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnAffiliation, 95);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnDomain, 85);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnLatitude, 105);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnLongitude, 105);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnAltitude, 85);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnSpeed, 90);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnHeading, 75);
-    m_tableView->setColumnWidth(GISApp::UIModels::Tracks::TrackTableModel::ColumnReportTime, 95);
+    using namespace GISApp::UIModels::Tracks;
+    m_tableView->setColumnWidth(TrackTableModel::ColumnId, 60);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnName, 110);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnIdentity, 95);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnType, 85);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnSubType, 100);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnClassification, 100);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnStrength, 75);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnActivity, 110);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnLatitude, 100);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnLongitude, 100);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnHeight, 85);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnDirection, 75);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnSystemType, 95);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnReportTime, 95);
+    m_tableView->setColumnWidth(TrackTableModel::ColumnRemarks, 140);
 
-    m_tableView->sortByColumn(GISApp::UIModels::Tracks::TrackTableModel::ColumnId, Qt::AscendingOrder);
+    m_tableView->sortByColumn(TrackTableModel::ColumnId, Qt::AscendingOrder);
 }
 
 } // namespace GISApp::UI::Tracks

@@ -6,19 +6,19 @@ A Python tactical track simulation tool that generates and transmits live binary
 
 ## Features
 
-- **5 Active Tactical Tracks**:
-  - `VIPER-01` (ID: 101) - Air Hostile, 520 km/h, circular clockwise combat air patrol orbit.
-  - `FALCON-02` (ID: 102) - Air Hostile, 480 km/h, diagonal linear patrol pattern.
-  - `EAGLE-03` (ID: 103) - Air Hostile, 410 km/h, tactical figure-8 (lemniscate) surveillance orbit.
-  - `HAWK-04` (ID: 104) - Air Hostile, 600 km/h, east-west high-altitude strike patrol.
-  - `COBRA-05` (ID: 105) - Air Hostile, 310 km/h, low-altitude zigzag tactical sweep.
-- **Dynamic Coordinate Updates**: Continuously updates latitude, longitude, altitude, heading, and kinematics in real-time.
-- **Strict Wire Alignment**:
+- **5 Active Tactical Tracks with Canonical Wire Attributes**:
+  - `VIPER-01` (ID: 101) - **Hostile Air** (`AIR 1 Fixed Wing`, `PATROL`, Circular CW Orbit, 8500m).
+  - `FALCON-02` (ID: 102) - **Friendly Air** (`AIR 2 Rotary Wing`, `ESCORT`, Linear Patrol, 9800m).
+  - `EAGLE-03` (ID: 103) - **Neutral Surface** (`SURFACE 1`, `SURVEILLANCE`, Figure-8 Orbit, 6400m).
+  - `HAWK-04` (ID: 104) - **Unknown Land** (`LAND 1 Armored`, Strength 3, Linear Patrol, 11500m).
+  - `COBRA-05` (ID: 105) - **Hostile Air** (`AIR 1 Fixed Wing`, `RECON`, Low-Altitude Zigzag, 3200m).
+- **Real-Time Spatial Updates**: Continuously updates `latatitude`, `longitude`, `height`, and direction (`dir`) in real time.
+- **Strict Wire Alignment with `WireStructures.h`**:
   - 15-byte packed `STRUCT_MESSAGE_HEADER` (`message_id = 613`).
   - 2-byte `no_of_tracks`.
-  - 304-byte packed `STRUCT_TRACK_PAYLOAD` per track.
-  - Batched transmission adhering to Ethernet MTU (`MAX_UDP_PACKET_SIZE = 1500` bytes).
-- **Live Terminal Telemetry**: Formatted color dashboard displaying coordinates, altitude, heading, and packet metrics every tick.
+  - 304-byte packed `STRUCT_TRACK` per track (`track_id`, `track_name`, `track_loc`, `track_identity`, `track_attributes`, `sys_track_type`, `no_of_sources`, `track_symbol`, `track_report_time`, `track_remarks`).
+  - Clean datagram batching complying with Ethernet MTU (`MAX_UDP_PACKET_SIZE = 1500` bytes).
+- **Live Terminal Telemetry**: Formatted dashboard displaying IDs, callsigns, identities, domain types, coordinates, height, direction, and remarks.
 
 ---
 

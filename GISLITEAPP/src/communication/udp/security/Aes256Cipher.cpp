@@ -1,7 +1,7 @@
 /**
  * @file Aes256Cipher.cpp
  * @brief Implementation of OpenSSL EVP AES-256-CBC cipher routines.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

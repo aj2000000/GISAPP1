@@ -18,7 +18,6 @@ class MapLayer;
 
 namespace GISApp::Repositories {
 class ILayerRepository;
-class ITrackRepository;
 }
 
 namespace GISApp::UIModels::Layers {
@@ -95,11 +94,6 @@ public:
      */
     void setMapController(GISApp::Controllers::MapController *mapController);
 
-    /**
-     * @brief Sets the track repository used to compute tactical track layer bounds.
-     * @param[in] trackRepo Pointer to ITrackRepository.
-     */
-    void setTrackRepository(GISApp::Repositories::ITrackRepository *trackRepo);
 
     /**
      * @brief Sets the TrackController for tactical track visibility delegation.
@@ -194,7 +188,6 @@ private:
     GISApp::UI::MapWidget *m_mapWidget;
     GISApp::UI::Layers::LayerTreePanel *m_panel;
     GISApp::Controllers::MapController *m_mapController{nullptr};
-    GISApp::Repositories::ITrackRepository *m_trackRepository{nullptr};
     GISApp::Controllers::Tracks::TrackController *m_trackController{nullptr};
 };
 

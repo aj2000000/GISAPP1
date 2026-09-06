@@ -1,7 +1,7 @@
 /**
  * @file ITablePanelDialog.h
  * @brief Core interface definition for modeless tactical table dialogs.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

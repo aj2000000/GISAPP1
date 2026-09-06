@@ -1,14 +1,11 @@
 /**
  * @file TacticalTrackService.cpp
  * @brief Implementation of pure domain TacticalTrackService.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
 #include "TacticalTrackService.h"
-#include <QJsonDocument>
-#include <QJsonObject>
-#include <QJsonArray>
 #include <QDebug>
 
 namespace GISApp::Services::Tracks {
@@ -21,6 +18,17 @@ TacticalTrackService::TacticalTrackService(GISApp::Repositories::ITrackRepositor
     if (m_trackRepo) {
         connect(m_trackRepo, &GISApp::Repositories::ITrackRepository::tracksUpdated,
                 this, &TacticalTrackService::onRepositoryTracksUpdated);
+
+        connect(m_trackRepo, &GISApp::Repositories::ITrackRepository::trackUpserted,
+                this, [this](int trackId) {
+                    auto trk = getTrackById(trackId);
+                    if (trk.has_value()) {
+                        emit trackUpdated(trk.value());
+                    }
+                });
+
+        connect(m_trackRepo, &GISApp::Repositories::ITrackRepository::trackRemoved,
+                this, &TacticalTrackService::trackRemoved);
     }
 }
 
@@ -39,30 +47,15 @@ int TacticalTrackService::trackCount() const
     return m_trackRepo ? m_trackRepo->count() : 0;
 }
 
-QByteArray TacticalTrackService::getTracksAsGeoJson() const
+bool TacticalTrackService::deleteTrack(int trackId)
 {
-    QVector<GISApp::Domain::Tracks::TacticalTrack> tracks = getAllTracks();
-
-    QJsonArray featuresArray;
-    for (const auto &track : tracks) {
-        featuresArray.append(track.toGeoJsonFeature());
-    }
-
-    QJsonObject featureCollection;
-    featureCollection[QStringLiteral("type")] = QStringLiteral("FeatureCollection");
-    featureCollection[QStringLiteral("features")] = featuresArray;
-
-    QJsonDocument doc(featureCollection);
-    return doc.toJson(QJsonDocument::Compact);
+    return m_trackRepo ? m_trackRepo->removeTrack(trackId) : false;
 }
 
 void TacticalTrackService::onRepositoryTracksUpdated()
 {
-    QByteArray geoJson = getTracksAsGeoJson();
     auto tracks = getAllTracks();
-
-    qDebug() << "[TacticalTrackService] Domain tracks updated (" << tracks.size() << "tracks). Broadcasting GeoJSON.";
-    emit geoJsonUpdated(geoJson);
+    qDebug() << "[TacticalTrackService] Domain tracks updated (" << tracks.size() << "tracks). Broadcasting tracksUpdated.";
     emit tracksUpdated(tracks);
 }
 

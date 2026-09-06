@@ -1,7 +1,7 @@
 /**
  * @file UdpDataStore.h
  * @brief Thread-safe configuration and runtime state store for the UDP communication subsystem.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class UdpDataStore

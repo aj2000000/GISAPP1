@@ -1,7 +1,7 @@
 /**
  * @file TacticalTrackService.h
  * @brief Domain service providing business logic, spatial querying, and GeoJSON serialization for tactical tracks.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -62,23 +62,36 @@ public:
     [[nodiscard]] int trackCount() const;
 
     /**
-     * @brief Generates a standard GeoJSON FeatureCollection byte array representing all active tracks.
-     * @return Compact JSON QByteArray.
+     * @brief Accesses the underlying ITrackRepository instance.
+     * @return Pointer to ITrackRepository.
      */
-    [[nodiscard]] QByteArray getTracksAsGeoJson() const;
+    [[nodiscard]] GISApp::Repositories::ITrackRepository* repository() const { return m_trackRepo; }
+
+    /**
+     * @brief Deletes a track from the repository by its identifier.
+     * @param[in] trackId Unique track ID to remove.
+     * @return True if track was deleted, false otherwise.
+     */
+    bool deleteTrack(int trackId);
 
 signals:
     /**
-     * @brief Emitted whenever track data is updated, delivering pre-serialized GeoJSON.
-     * @param[in] geoJsonData Standard GeoJSON FeatureCollection byte array.
-     */
-    void geoJsonUpdated(const QByteArray &geoJsonData);
-
-    /**
-     * @brief Emitted whenever track data changes, delivering domain entities to observers.
+     * @brief Emitted whenever track collection data changes, delivering domain entities to observers.
      * @param[in] tracks Snapshot of all active tactical tracks.
      */
     void tracksUpdated(const QVector<GISApp::Domain::Tracks::TacticalTrack> &tracks);
+
+    /**
+     * @brief Emitted when an individual tactical track entity is inserted or updated.
+     * @param[in] track Updated tactical track domain model.
+     */
+    void trackUpdated(const GISApp::Domain::Tracks::TacticalTrack &track);
+
+    /**
+     * @brief Emitted when an individual tactical track entity is removed.
+     * @param[in] trackId Numerical identifier of removed track.
+     */
+    void trackRemoved(int trackId);
 
 public slots:
     /**

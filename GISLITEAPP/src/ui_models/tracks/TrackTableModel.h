@@ -1,7 +1,7 @@
 /**
  * @file TrackTableModel.h
- * @brief Qt Abstract Table Model adapting tactical track domain entities for tabular views.
- * @author BrahmaxisGIS Development Team
+ * @brief Table model for rendering tactical track lists using true STRUCT_TRACK properties.
+ * @author GISLITE Development Team
  * @date 2026
  */
 
@@ -11,26 +11,22 @@
 #include <QAbstractTableModel>
 #include <QVector>
 #include <QColor>
-#include "TacticalTrack.h"
+#include <QFont>
 
-namespace GISApp::Repositories {
-class ITrackRepository;
-}
+#include "TacticalTrack.h"
+#include "ITrackRepository.h"
 
 namespace GISApp::UIModels::Tracks {
 
 /**
  * @class TrackTableModel
- * @brief Qt Table Model providing tabular representation and formatting of tactical track data.
+ * @brief High-performance table model displaying tactical tracks based on canonical STRUCT_TRACK properties.
  *
- * Architectural Role & Responsibilities:
- * - Resides in the UI Models layer (Presentation / View-Model tier in Clean Architecture).
- * - Adapts raw domain entities (GISApp::Domain::Tracks::TacticalTrack) into a structured 2D table grid
- *   suitable for consumption by QTableView, QSortFilterProxyModel, and custom delegates.
- * - Subscribes to ITrackRepository::tracksUpdated() to ensure live telemetry changes reflect immediately
- *   in the UI without blocking the rendering or network threads.
- * - Enforces tactical military aesthetics (MIL-STD-2525 color-coding for Hostile, Friendly, and Neutral tracks).
- * - Formats geodetic coordinates, altitudes, speeds, and headings with standard aeronautical/marine units.
+ * Architectural Role & Design Patterns:
+ * - Resides in the UI Models layer (`src/ui_models/tracks/`).
+ * - Implements the **Qt Model-View Architecture** (`QAbstractTableModel`).
+ * - Employs `FieldKeyValueMapper` as the single source of truth for converting protocol/attribute
+ *   integers into human-readable tactical terminology.
  */
 class TrackTableModel : public QAbstractTableModel
 {
@@ -38,18 +34,22 @@ class TrackTableModel : public QAbstractTableModel
 
 public:
     /**
-     * @brief Logical columns represented by the model.
+     * @brief Logical columns represented by the model directly reflecting STRUCT_TRACK properties.
      */
     enum Column {
-        ColumnId = 0,          ///< Unique system track identifier
-        ColumnCallsign,        ///< Operator or transponder callsign
-        ColumnAffiliation,     ///< Hostile, Friendly, Neutral, Unknown
-        ColumnDomain,          ///< Air, Surface, Land, Subsurface
+        ColumnId = 0,          ///< Unique system track identifier (track_id)
+        ColumnName,            ///< Designated track callsign/name (track_name)
+        ColumnIdentity,        ///< Track identity (HOSTILE, FRIENDLY, NEUTRAL, UNKNOWN)
+        ColumnType,            ///< Domain type (AIR, SURFACE, SUBSURFACE, LAND)
+        ColumnSubType,         ///< Track specific subtype
+        ColumnClassification,  ///< Security/IFF classification
+        ColumnStrength,        ///< Target formation count / strength
+        ColumnActivity,        ///< Activity type
         ColumnLatitude,        ///< Geodetic latitude in decimal degrees
         ColumnLongitude,       ///< Geodetic longitude in decimal degrees
-        ColumnAltitude,        ///< Altitude in meters above mean sea level
-        ColumnSpeed,           ///< Ground speed in km/h
-        ColumnHeading,         ///< True heading in degrees
+        ColumnHeight,          ///< Elevation / height above MSL in meters
+        ColumnDirection,       ///< Bearing / direction in degrees
+        ColumnSystemType,      ///< System track designation (SYSTEM 1, SYSTEM 2/FUSED)
         ColumnReportTime,      ///< Timestamp of the most recent telemetry packet
         ColumnRemarks,         ///< Free-text operational notes or remarks
         ColumnCount            ///< Total number of columns
@@ -62,10 +62,9 @@ public:
         TrackIdRole = Qt::UserRole + 1,    ///< Raw integer track ID
         RawLatitudeRole,                   ///< Raw double latitude in degrees
         RawLongitudeRole,                  ///< Raw double longitude in degrees
-        RawAltitudeRole,                   ///< Raw double altitude in meters
-        RawSpeedRole,                      ///< Raw double ground speed in km/h
-        RawHeadingRole,                    ///< Raw double heading in degrees
-        TrackIdentityRole,                 ///< Integer enum representing TrackIdentity
+        RawHeightRole,                     ///< Raw double height in meters
+        RawDirectionRole,                  ///< Raw double direction in degrees
+        TrackIdentityRole,                 ///< Integer code representing IDENTITY
         TrackObjectRole                    ///< Full TacticalTrack instance via QVariant
     };
 
@@ -77,36 +76,36 @@ public:
     explicit TrackTableModel(GISApp::Repositories::ITrackRepository *repo = nullptr, QObject *parent = nullptr);
 
     /**
-     * @brief Virtual destructor releasing model resources.
+     * @brief Destructor.
      */
     virtual ~TrackTableModel() override = default;
 
     /**
-     * @brief Attaches a new track repository and establishes update connections.
+     * @brief Sets or replaces the track repository.
      * @param[in] repo Pointer to ITrackRepository.
      */
-    void setTrackRepository(GISApp::Repositories::ITrackRepository *repo);
+    void setRepository(GISApp::Repositories::ITrackRepository *repo);
 
     /**
-     * @brief Retrieves the attached track repository.
-     * @return Pointer to ITrackRepository, or nullptr if none attached.
+     * @brief Retrieves the active track repository.
+     * @return Pointer to active ITrackRepository.
      */
-    [[nodiscard]] GISApp::Repositories::ITrackRepository* trackRepository() const { return m_repo; }
+    [[nodiscard]] GISApp::Repositories::ITrackRepository* repository() const { return m_repo; }
 
     /**
-     * @brief Retrieves the domain track entity located at a specific row index.
-     * @param[in] row Zero-based row index in the model.
-     * @return Copy of the TacticalTrack entity, or an empty default track if out of bounds.
+     * @brief Returns the TacticalTrack instance at the specified model row.
+     * @param[in] row 0-based row index.
+     * @return TacticalTrack instance or empty track if invalid index.
      */
     [[nodiscard]] GISApp::Domain::Tracks::TacticalTrack getTrackAt(int row) const;
 
     /**
-     * @brief Retrieves read-only access to all active track entities cached in the model.
-     * @return Const reference to internal QVector of TacticalTrack.
+     * @brief Retrieves all active tactical tracks currently loaded in the model.
+     * @return Const reference to track vector.
      */
     [[nodiscard]] const QVector<GISApp::Domain::Tracks::TacticalTrack>& tracks() const { return m_tracks; }
 
-    // QAbstractTableModel interface overrides
+    // --- QAbstractTableModel Interface ---
     [[nodiscard]] int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     [[nodiscard]] int columnCount(const QModelIndex &parent = QModelIndex()) const override;
     [[nodiscard]] QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
@@ -114,25 +113,19 @@ public:
 
 public slots:
     /**
-     * @brief Refetches tracks from the attached repository and updates the model.
-     */
-    void reloadTracks();
-
-    /**
-     * @brief Slot triggered when the attached repository emits tracksUpdated.
+     * @brief Slot triggered when the repository signals tracks have been updated.
      */
     void onTracksUpdated();
 
-private:
     /**
-     * @brief Establishes Qt signal-slot bindings with the attached repository.
+     * @brief Re-queries all tracks from the repository and resets the model.
      */
+    void reloadTracks();
+
+private:
     void setupRepositoryConnections();
 
-    /// Attached domain track repository supplying telemetry entities.
     GISApp::Repositories::ITrackRepository *m_repo{nullptr};
-
-    /// Local cached snapshot of tactical tracks displayed by the table.
     QVector<GISApp::Domain::Tracks::TacticalTrack> m_tracks;
 };
 

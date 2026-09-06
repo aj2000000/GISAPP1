@@ -1,7 +1,7 @@
 /**
  * @file IUdpMessageHandler.h
  * @brief Strategy interface for parsing and processing specific UDP binary message types.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  *
  * @class IUdpMessageHandler

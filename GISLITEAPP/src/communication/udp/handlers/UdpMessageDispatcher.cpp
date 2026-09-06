@@ -1,7 +1,7 @@
 /**
  * @file UdpMessageDispatcher.cpp
  * @brief Implementation of central UdpMessageDispatcher routing.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

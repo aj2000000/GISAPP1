@@ -1,7 +1,7 @@
 /**
  * @file UdpMessageDispatcher.h
  * @brief Central dispatcher routing incoming UDP datagrams to registered message handlers.
- * @author BrahmaxisGIS Development Team
+ * @author GISLITE Development Team
  * @date 2026
  */
 

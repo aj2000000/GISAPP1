@@ -17,6 +17,10 @@ class Map;
 class Settings;
 }
 
+namespace GISApp::Core::Interfaces {
+class IContextMenuContributor;
+}
+
 namespace GISApp::UI {
 
 /**
@@ -146,6 +150,18 @@ public:
      */
     [[nodiscard]] QMapLibre::MapWidget* nativeWidget() const;
 
+    /**
+     * @brief Registers a context menu contributor for right-click action aggregation.
+     * @param[in] contributor Pointer to contributor instance.
+     */
+    void registerContextMenuContributor(GISApp::Core::Interfaces::IContextMenuContributor *contributor);
+
+    /**
+     * @brief Unregisters a previously registered context menu contributor.
+     * @param[in] contributor Pointer to contributor instance to remove.
+     */
+    void unregisterContextMenuContributor(GISApp::Core::Interfaces::IContextMenuContributor *contributor);
+
 signals:
     /**
      * @brief Emitted when mouse cursor moves across map viewport, packed as domain GeoCoordinate.
@@ -253,6 +269,16 @@ private:
 
     /// Polling timer to detect when Map core is instantiated by QRhiWidget
     class QTimer *m_initTimer{nullptr};
+
+    /// Registered context menu contributors
+    QList<GISApp::Core::Interfaces::IContextMenuContributor*> m_contextMenuContributors;
+
+    /**
+     * @brief Displays aggregated context menu for right-click events at given screen coordinate.
+     * @param[in] pos Viewport pixel position relative to m_nativeMapWidget.
+     * @param[in] globalPos Global screen position for menu popup.
+     */
+    void showContextMenu(const QPointF &pos, const QPoint &globalPos);
 };
 
 } // namespace GISApp::UI
