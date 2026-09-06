@@ -105,6 +105,37 @@ void BaseMapFeatureRenderer::clearFeatures()
     renderGeoJson(QByteArrayLiteral("{\"type\":\"FeatureCollection\",\"features\":[]}"));
 }
 
+void BaseMapFeatureRenderer::reconfigureLayers()
+{
+    if (!m_mapWidget) {
+        return;
+    }
+    QMapLibre::Map *map = m_mapWidget->rawMap();
+    if (!map) {
+        return;
+    }
+
+    // 1. Remove registered GPU layers from map engine
+    for (const QString &layerId : m_layerIds) {
+        if (map->layerExists(layerId)) {
+            map->removeLayer(layerId);
+        }
+    }
+
+    // 2. Clear layer tracking state and rebuild layers on top of stack
+    m_layerIds.clear();
+    m_layersConfigured = false;
+    ensureLayersConfigured();
+
+    // 3. Re-inject cached GeoJSON data if present
+    if (!m_cachedGeoJson.isEmpty()) {
+        pushGeoJsonToMap(m_cachedGeoJson);
+    }
+
+    qDebug() << "[BaseMapFeatureRenderer] Reconfigured GPU layers for source:" << m_sourceId
+             << "Active layers:" << m_layerIds;
+}
+
 void BaseMapFeatureRenderer::onMapReady()
 {
     qInfo() << "[BaseMapFeatureRenderer] Map engine ready for" << m_sourceId << ". Configuring GPU layers...";

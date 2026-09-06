@@ -9,6 +9,9 @@
 #include "MapWidget.h"
 #include "MapController.h"
 #include "TrackController.h"
+#include "SampleEntityController.h"
+#include "TrackMapRenderer.h"
+#include "SampleEntityMapRenderer.h"
 #include "LayerTreePanel.h"
 #include "LayerTreeView.h"
 #include "MapLayer.h"
@@ -106,6 +109,18 @@ void LayerController::setTrackController(GISApp::Controllers::Tracks::TrackContr
     }
 }
 
+void LayerController::setSampleEntityController(GISApp::Controllers::SampleEntities::SampleEntityController *sampleEntityController)
+{
+    m_sampleEntityController = sampleEntityController;
+    if (m_sampleEntityController && m_repository) {
+        auto *layer = m_repository->getLayerById("sample_entity_layer");
+        if (layer) {
+            m_sampleEntityController->setEntitiesVisible(layer->isVisible());
+            delete layer;
+        }
+    }
+}
+
 void LayerController::setupConnections()
 {
     if (m_panel) {
@@ -163,11 +178,13 @@ void LayerController::moveSelectedUp()
     QModelIndex parentIndex = current.parent();
 
     if (m_treeModel->moveLayerUp(current)) {
-        // Restore selection to the moved row
+        // Restore selection to the moved row and keep it expanded in the tree view
         if (m_panel->treeView() && m_panel->treeView()->selectionModel()) {
             QModelIndex nextIndex = m_treeModel->index(newRow, 0, parentIndex);
             m_panel->treeView()->selectionModel()->setCurrentIndex(
                 nextIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            m_panel->treeView()->expand(nextIndex);
+            m_panel->treeView()->scrollTo(nextIndex);
         }
     }
 }
@@ -179,15 +196,20 @@ void LayerController::moveSelectedDown()
     QModelIndex current = m_panel->selectedIndex();
     if (!current.isValid()) return;
 
-    int newRow = current.row() + 1;
     QModelIndex parentIndex = current.parent();
+    int rowCount = m_treeModel->rowCount(parentIndex);
+    if (current.row() >= rowCount - 1) return;
+
+    int newRow = current.row() + 1;
 
     if (m_treeModel->moveLayerDown(current)) {
-        // Restore selection to the moved row
+        // Restore selection to the moved row and keep it expanded in the tree view
         if (m_panel->treeView() && m_panel->treeView()->selectionModel()) {
             QModelIndex nextIndex = m_treeModel->index(newRow, 0, parentIndex);
             m_panel->treeView()->selectionModel()->setCurrentIndex(
                 nextIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+            m_panel->treeView()->expand(nextIndex);
+            m_panel->treeView()->scrollTo(nextIndex);
         }
     }
 }
@@ -237,6 +259,11 @@ void LayerController::panToLayer(const QModelIndex &index)
                 if (foundCoordinates) {
                     break;
                 }
+            } else if (l && l->id() == "sample_entity_layer" && m_sampleEntityController) {
+                foundCoordinates = m_sampleEntityController->calculateEntitiesCenter(targetLat, targetLon, targetZoom);
+                if (foundCoordinates) {
+                    break;
+                }
             }
         }
 
@@ -251,6 +278,14 @@ void LayerController::panToLayer(const QModelIndex &index)
 
         if (layer->id() == "tactical_tracks") {
             if (m_trackController && m_trackController->calculateTracksCenter(targetLat, targetLon, targetZoom)) {
+                targetZoom = 10.0;
+            } else {
+                targetLat = 12.9716;
+                targetLon = 77.5946;
+                targetZoom = 7.0;
+            }
+        } else if (layer->id() == "sample_entity_layer") {
+            if (m_sampleEntityController && m_sampleEntityController->calculateEntitiesCenter(targetLat, targetLon, targetZoom)) {
                 targetZoom = 10.0;
             } else {
                 targetLat = 12.9716;
@@ -298,6 +333,10 @@ void LayerController::onLayerVisibilityChanged(const QString &layerId, bool visi
         m_trackController->setTracksVisible(visible);
     }
 
+    if (layerId == "sample_entity_layer" && m_sampleEntityController) {
+        m_sampleEntityController->setEntitiesVisible(visible);
+    }
+
     if (m_mapWidget && m_mapWidget->rawMap()) {
         const QString vis = visible ? QStringLiteral("visible") : QStringLiteral("none");
         if (m_mapWidget->rawMap()->layerExists(layerId)) {
@@ -322,6 +361,13 @@ void LayerController::onLayerVisibilityChanged(const QString &layerId, bool visi
             }
             if (m_mapWidget->rawMap()->layerExists("tactical_tracks_label")) {
                 m_mapWidget->rawMap()->setLayoutProperty("tactical_tracks_label", "visibility", vis);
+            }
+        }
+        if (layerId == "sample_entity_layer" && !m_sampleEntityController) {
+            for (const auto &lid : resolveMapLibreLayerIds(layerId)) {
+                if (m_mapWidget->rawMap()->layerExists(lid)) {
+                    m_mapWidget->rawMap()->setLayoutProperty(lid, "visibility", vis);
+                }
             }
         }
     }
@@ -359,6 +405,13 @@ QStringList LayerController::resolveMapLibreLayerIds(const QString &logicalId) c
         return {QStringLiteral("tactical_tracks_glow"),
                 QStringLiteral("tactical_tracks_circle"),
                 QStringLiteral("tactical_tracks_label")};
+    }
+    if (logicalId == QStringLiteral("sample_entity_layer")) {
+        return {QStringLiteral("sample_entities_curve_glow"),
+                QStringLiteral("sample_entities_curve"),
+                QStringLiteral("sample_entities_circle"),
+                QStringLiteral("sample_entities_icon"),
+                QStringLiteral("sample_entities_label")};
     }
     // For future / custom layers, the MapLibre layer ID matches the logical ID
     return {logicalId};
@@ -460,57 +513,70 @@ void LayerController::restackMapLibreLayers(const QMap<QString, int> &orderMap)
         }
     }
 
-    // 7. Re-add layers in desired order (bottom to top).
-    //    addLayer(id, params, before="") adds at the TOP of the stack.
-    //    So we iterate bottom→top; each successive addLayer goes on top of the previous.
-    for (const QString &id : desiredExisting) {
-        if (id == QStringLiteral("background")) {
-            continue; // Immovable anchor; already at bottom
-        }
+    auto getLayerVisibility = [this](const QString &layerId) -> bool {
+        if (!m_repository) return true;
+        auto *l = m_repository->getLayerById(layerId);
+        if (!l) return true;
+        bool vis = l->isVisible();
+        delete l;
+        return vis;
+    };
 
-        if (map->layerExists(id)) {
-            continue; // Already present (shouldn't happen after removal, but safety check)
-        }
+    // 7. Re-add layers in desired logical order (bottom to top).
+    //    Each successive layer added goes on TOP of the previous ones.
+    for (const auto &pair : sorted) {
+        const QString &logicalId = pair.second;
 
-        // Determine layer type and source for reconstruction
-        QVariantMap params;
-        params[QStringLiteral("id")] = id;
-
-        if (id == QStringLiteral("tactical_basemap_layer")) {
-            params[QStringLiteral("type")] = QStringLiteral("raster");
-            params[QStringLiteral("source")] = QStringLiteral("tactical_basemap");
-        } else if (id == QStringLiteral("worldmap_layer")) {
-            params[QStringLiteral("type")] = QStringLiteral("raster");
-            params[QStringLiteral("source")] = QStringLiteral("worldmap");
+        if (logicalId == QStringLiteral("background")) {
+            if (desiredExisting.contains(QStringLiteral("tactical_basemap_layer")) &&
+                !map->layerExists(QStringLiteral("tactical_basemap_layer"))) {
+                QVariantMap params;
+                params[QStringLiteral("id")] = QStringLiteral("tactical_basemap_layer");
+                params[QStringLiteral("type")] = QStringLiteral("raster");
+                params[QStringLiteral("source")] = QStringLiteral("tactical_basemap");
+                bool visible = getLayerVisibility(QStringLiteral("background"));
+                params[QStringLiteral("layout")] = QVariantMap{{QStringLiteral("visibility"),
+                    visible ? QStringLiteral("visible") : QStringLiteral("none")}};
+                map->addLayer(QStringLiteral("tactical_basemap_layer"), params);
+                qDebug() << "[LayerController] Re-added MapLibre layer: tactical_basemap_layer";
+            }
+        } else if (logicalId == QStringLiteral("worldmap_layer")) {
+            if (desiredExisting.contains(QStringLiteral("worldmap_layer")) &&
+                !map->layerExists(QStringLiteral("worldmap_layer"))) {
+                QVariantMap params;
+                params[QStringLiteral("id")] = QStringLiteral("worldmap_layer");
+                params[QStringLiteral("type")] = QStringLiteral("raster");
+                params[QStringLiteral("source")] = QStringLiteral("worldmap");
+                bool visible = getLayerVisibility(QStringLiteral("worldmap_layer"));
+                params[QStringLiteral("layout")] = QVariantMap{{QStringLiteral("visibility"),
+                    visible ? QStringLiteral("visible") : QStringLiteral("none")}};
+                map->addLayer(QStringLiteral("worldmap_layer"), params);
+                qDebug() << "[LayerController] Re-added MapLibre layer: worldmap_layer";
+            }
+        } else if (logicalId == QStringLiteral("tactical_tracks")) {
+            if (m_trackController && m_trackController->trackMapRenderer()) {
+                m_trackController->trackMapRenderer()->reconfigureLayers();
+                qDebug() << "[LayerController] Reconfigured GPU layers for tactical_tracks via renderer";
+            }
+        } else if (logicalId == QStringLiteral("sample_entity_layer")) {
+            if (m_sampleEntityController && m_sampleEntityController->sampleEntityMapRenderer()) {
+                m_sampleEntityController->sampleEntityMapRenderer()->reconfigureLayers();
+                qDebug() << "[LayerController] Reconfigured GPU layers for sample_entity_layer via renderer";
+            }
         } else {
-            // Runtime layers (tactical_tracks_*) are managed by BaseMapFeatureRenderer.
-            // They were removed above; BaseMapFeatureRenderer::onMapChanged() will detect
-            // they're missing and automatically re-inject them at the top of the stack.
-            // We skip explicit re-addition here.
-            continue;
-        }
-
-        // Preserve visibility from the database
-        QVariantMap layout;
-        bool visible = true;
-        if (m_repository) {
-            // For sub-layers of "background" (tactical_basemap_layer), inherit parent visibility
-            QString lookupId = id;
-            if (id == QStringLiteral("tactical_basemap_layer")) {
-                lookupId = QStringLiteral("background");
-            }
-            auto *dbLayer = m_repository->getLayerById(lookupId);
-            if (dbLayer) {
-                visible = dbLayer->isVisible();
-                delete dbLayer;
+            // Generic custom layer re-addition
+            for (const QString &id : resolveMapLibreLayerIds(logicalId)) {
+                if (desiredExisting.contains(id) && !map->layerExists(id)) {
+                    QVariantMap params;
+                    params[QStringLiteral("id")] = id;
+                    bool visible = getLayerVisibility(logicalId);
+                    params[QStringLiteral("layout")] = QVariantMap{{QStringLiteral("visibility"),
+                        visible ? QStringLiteral("visible") : QStringLiteral("none")}};
+                    map->addLayer(id, params);
+                    qDebug() << "[LayerController] Re-added generic MapLibre layer:" << id;
+                }
             }
         }
-        layout[QStringLiteral("visibility")] = visible ? QStringLiteral("visible") : QStringLiteral("none");
-        params[QStringLiteral("layout")] = layout;
-
-        // Add at the top of the current stack (before = "" means top)
-        map->addLayer(id, params);
-        qDebug() << "[LayerController] Re-added MapLibre layer:" << id;
     }
 
     qInfo() << "[LayerController] MapLibre layer stack re-ordered. Final:"
@@ -591,10 +657,22 @@ void LayerController::ensureFixedLayersExist()
     tacticalTracksLayer.setVisible(true);
     tacticalTracksLayer.setOpacity(1.0);
 
+    // 4. Mandatory Sample Entity layer
+    GISApp::Domain::Layers::MapLayer sampleEntityLayer(
+        "sample_entity_layer",
+        "Sample Entity",
+        GISApp::Domain::Layers::LayerType::SampleEntity,
+        ""
+    );
+    sampleEntityLayer.setGroupName("Sample");
+    sampleEntityLayer.setVisible(true);
+    sampleEntityLayer.setOpacity(1.0);
+
     QVector<GISApp::Domain::Layers::MapLayer> fixedLayers = {
         baseMapLayer,
         worldMapLayer,
-        tacticalTracksLayer
+        tacticalTracksLayer,
+        sampleEntityLayer
     };
 
     m_repository->ensureFixedLayers(fixedLayers);

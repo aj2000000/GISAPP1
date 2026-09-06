@@ -75,6 +75,18 @@ public:
     void renderFeatures(const QVector<const GISApp::Core::Interfaces::IMapFeature*> &features) override;
     void clearFeatures() override;
 
+    /**
+     * @brief Reconfigures GPU layers on the MapLibre engine, preserving source data and visibility.
+     *
+     * Removes existing GPU layers associated with this renderer from the MapLibre map,
+     * resets layer configuration state, calls ensureLayersConfigured() to append them
+     * at the top of the current layer stack, and re-pushes any cached GeoJSON features.
+     * Essential when restacking layer ordering across layer groups or dynamically changing z-orders.
+     *
+     * @note Thread-safety: Must be called from the Qt main UI thread.
+     */
+    virtual void reconfigureLayers();
+
     // --- Map Canvas Attachment ---
 
     /**

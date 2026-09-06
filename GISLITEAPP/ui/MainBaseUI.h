@@ -21,6 +21,7 @@ class MapWidget;
 
 namespace GISApp::UI::Renderers {
 class TrackMapRenderer;
+class SampleEntityMapRenderer;
 }
 
 namespace GISApp::UI::Tracks {
@@ -49,6 +50,27 @@ class TacticalTrackService;
 namespace GISApp::Controllers::Tracks {
 class TrackController;
 }
+
+namespace GISApp::Controllers::SampleEntities {
+class SampleEntityController;
+}
+
+namespace GISApp::Repositories::SampleEntities {
+class SampleEntityRepository;
+}
+namespace GISApp::Services::SampleEntities {
+class SampleEntityService;
+}
+
+namespace GISApp::UIModels::SampleEntities {
+class SampleEntityTableModel;
+}
+namespace GISApp::UI::SampleEntities {
+class SampleEntityTablePanelDialog;
+class SampleEntityDetailDialog;
+}
+
+
 
 class MainBaseUI : public QMainWindow
 {
@@ -89,6 +111,15 @@ public:
     GISApp::Controllers::Layers::LayerController *layerController() const { return m_layerController; }
     GISApp::Repositories::Tracks::TrackRepository *trackRepository() const { return m_trackRepository; }
     GISApp::Services::Tracks::TacticalTrackService *tacticalTrackService() const { return m_tacticalTrackService; }
+    GISApp::Repositories::SampleEntities::SampleEntityRepository *sampleEntityRepository() const { return m_sampleEntityRepository; }
+    GISApp::Services::SampleEntities::SampleEntityService *sampleEntityService() const { return m_sampleEntityService; }
+
+    GISApp::UIModels::SampleEntities::SampleEntityTableModel *sampleEntityTableModel() const { return m_sampleEntityTableModel; }
+    GISApp::UI::SampleEntities::SampleEntityTablePanelDialog *sampleEntityTableDialog() const { return m_sampleEntityTableDialog; }
+    GISApp::UI::Renderers::SampleEntityMapRenderer *sampleEntityMapRenderer() const { return m_sampleEntityMapRenderer; }
+    GISApp::Controllers::SampleEntities::SampleEntityController *sampleEntityController() const { return m_sampleEntityController; }
+
+    
     GISApp::UI::Renderers::TrackMapRenderer *trackMapRenderer() const { return m_trackMapRenderer; }
     GISApp::Controllers::Tracks::TrackController *trackController() const { return m_trackController; }
     GISApp::UIModels::Tracks::TrackTableModel *trackTableModel() const { return m_trackTableModel; }
@@ -98,8 +129,41 @@ public:
     void showStatusMessage(const QString &message, int timeout = 4000);
     void updateCoordinates(double latitude, double longitude, double altitude = 0.0);
 
+    /**
+     * @brief Constructs and dispatches a binary REQ_ENTITY_MESSAGE (ID 1501) over UDP with entityType 1 (Tracks).
+     * @param[in] fromDt Starting date/time range.
+     * @param[in] toDt Ending date/time range.
+     * @return True if datagram sent successfully.
+     */
+    bool sendTrackEntityRequest(const QDateTime &fromDt, const QDateTime &toDt);
+
+    /**
+     * @brief Constructs and dispatches a binary REQ_ENTITY_MESSAGE (ID 1501) over UDP with entityType 2 (Sample Entities).
+     * @param[in] fromDt Starting date/time range.
+     * @param[in] toDt Ending date/time range.
+     * @return True if datagram sent successfully.
+     */
+    bool sendSampleEntityRequest(const QDateTime &fromDt, const QDateTime &toDt);
+
 public slots:
     void openTrackTableDialog();
+    void openSampleEntityTableDialog();
+
+    /**
+     * @brief Opens the TrackRequestDialog to configure and send track queries over UDP.
+     */
+    void openTrackRequestDialog();
+
+    /**
+     * @brief Opens the date/time dialog to query sample entities over UDP with req_entity_type = 2.
+     */
+    void openSampleEntityRequestDialog();
+
+    /**
+     * @brief Opens or raises the SampleEntityDetailDialog for a specific entity ID.
+     * @param[in] entityId Integer entity ID.
+     */
+    void showSampleEntityDetails(int entityId);
 
 protected:
     // Virtual template hooks for customisation
@@ -126,10 +190,21 @@ protected:
     GISApp::Controllers::Layers::LayerController *m_layerController;
     GISApp::Repositories::Tracks::TrackRepository *m_trackRepository{nullptr};
     GISApp::Services::Tracks::TacticalTrackService *m_tacticalTrackService{nullptr};
+    GISApp::Repositories::SampleEntities::SampleEntityRepository *m_sampleEntityRepository{nullptr};
+    GISApp::Services::SampleEntities::SampleEntityService *m_sampleEntityService{nullptr};
+    GISApp::UIModels::SampleEntities::SampleEntityTableModel *m_sampleEntityTableModel{nullptr};
+    GISApp::UI::SampleEntities::SampleEntityTablePanelDialog *m_sampleEntityTableDialog{nullptr};
+    GISApp::UI::Renderers::SampleEntityMapRenderer *m_sampleEntityMapRenderer{nullptr};
+    GISApp::Controllers::SampleEntities::SampleEntityController *m_sampleEntityController{nullptr};
+
+    
+    
     GISApp::UI::Renderers::TrackMapRenderer *m_trackMapRenderer{nullptr};
     GISApp::Controllers::Tracks::TrackController *m_trackController{nullptr};
     GISApp::UIModels::Tracks::TrackTableModel *m_trackTableModel{nullptr};
     GISApp::UI::Tracks::TrackTablePanelDialog *m_trackTableDialog{nullptr};
+
+
 };
 
 #endif // MAINBASEUI_H

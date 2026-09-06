@@ -21,6 +21,11 @@
 #define SAMPLE_ENTITY_MSG_ID   901  ///< Sample entity telemetry payload
 #define SENSOR_MSG_ID          902  ///< Sensor telemetry payload
 #define EXP_MESSAGE_ID         903  ///< Experimental telemetry payload
+#define MAIN_LITE_SAMPLE_ENTITY_MSG_ID 904
 /** @} */
+
+
+#define REQ_ENTITY_MESSAGE_ID         1501  ///< Experimental telemetry payload
+
 
 #endif // MESSAGEIDS_H

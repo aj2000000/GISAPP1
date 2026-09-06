@@ -39,16 +39,20 @@ INCLUDEPATH += \
     ui/users \
     ui/projects \
     ui/tracks \
+    ui/sampleentities \
     src \
     src/domain/models \
     src/domain/models/layers \
     src/domain/models/tracks \
+    src/domain/models/sampleentities \
     src/domain/valueobjects \
     src/repositories/interfaces \
     src/repositories/sqlite \
     src/repositories/tracks \
+    src/repositories/sampleentities \
     src/services \
     src/services/tracks \
+    src/services/sampleentities \
     src/communication/udp \
     src/communication/udp/transport \
     src/communication/udp/protocol \
@@ -59,6 +63,7 @@ INCLUDEPATH += \
     src/controllers/map \
     src/controllers/layers \
     src/controllers/tracks \
+    src/controllers/sampleentities \
     src/ui_models \
     src/ui_models/layers \
     src/ui_models/tracks \
@@ -66,18 +71,25 @@ INCLUDEPATH += \
     src/core/interfaces \
     src/core/wrappers \
     src/database \
-    src/common
+    src/common \
+    src/ui_models/sampleentities \
+    ui/sampleentities \
+
+
 
 SOURCES += \
     main.cpp \
     src/MainApplication.cpp \
+    src/communication/udp/handlers/udpsampleentitymessagehandler.cpp \
     src/core/wrappers/BaseTablePanelDialog.cpp \
     src/core/wrappers/BaseMapFeatureRenderer.cpp \
     src/database/DatabaseManager.cpp \
     src/domain/models/layers/LayerNode.cpp \
     src/domain/models/layers/LayerGroup.cpp \
     src/domain/models/layers/MapLayer.cpp \
+    src/domain/models/sampleentities/sampleentity.cpp \
     src/domain/models/tracks/TacticalTrack.cpp \
+    src/repositories/sampleentities/sampleentityrepository.cpp \
     src/repositories/sqlite/SqliteLayerRepository.cpp \
     src/repositories/tracks/TrackRepository.cpp \
     src/ui_models/layers/LayerTreeModel.cpp \
@@ -111,16 +123,30 @@ SOURCES += \
     ui/users/RegisterPage.cpp \
     ui/users/AuthWindow.cpp \
     ui/tracks/TrackDetailDialog.cpp \
-    src/common/fieldkeyvaluemapper.cpp
+    ui/tracks/TrackRequestDialog.cpp \
+    src/services/sampleentities/SampleEntityService.cpp \
+    src/common/fieldkeyvaluemapper.cpp \
+    src/ui_models/sampleentities/SampleEntityTableModel.cpp \
+    ui/sampleentities/SampleEntityTablePanelDialog.cpp \
+    ui/sampleentities/SampleEntityDetailDialog.cpp \
+    src/controllers/sampleentities/SampleEntityController.cpp \
+    ui/map/renderers/SampleEntityMapRenderer.cpp \
+
+
 
 HEADERS += \
     src/MainApplication.h \
     src/common/fieldkeyvaluemapper.h \
+    src/communication/udp/handlers/udpsampleentitymessagehandler.h \
     src/core/interfaces/ITablePanelDialog.h \
     src/core/interfaces/IMapFeature.h \
     src/core/interfaces/IMapFeatureRenderer.h \
     src/core/interfaces/IContextMenuContributor.h \
+    src/domain/models/sampleentities/sampleentity.h \
+    src/repositories/interfaces/ISampleEntityRepository.h \
+    src/repositories/sampleentities/sampleentityrepository.h \
     ui/tracks/TrackDetailDialog.h \
+    ui/tracks/TrackRequestDialog.h \
     src/core/wrappers/BaseTablePanelDialog.h \
     src/core/wrappers/BaseMapFeatureRenderer.h \
     src/database/DatabaseManager.h \
@@ -168,7 +194,16 @@ HEADERS += \
     ui/theme/ThemeManager.h \
     ui/users/LoginPage.h \
     ui/users/RegisterPage.h \
-    ui/users/AuthWindow.h
+    ui/users/AuthWindow.h \
+    src/services/sampleentities/SampleEntityService.h \
+    src/ui_models/sampleentities/SampleEntityTableModel.h \
+    ui/sampleentities/SampleEntityTablePanelDialog.h \
+    ui/sampleentities/SampleEntityDetailDialog.h \
+    src/controllers/sampleentities/SampleEntityController.h \
+    ui/map/renderers/SampleEntityMapRenderer.h \
+    ui/map/renderers/SampleEntityMapFeatureAdapter.h \
+
+
 
 FORMS +=
 

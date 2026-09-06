@@ -20,7 +20,8 @@ enum class LayerType {
     GeoJSON,        ///< Vector GeoJSON data source
     Elevation,      ///< DTED / SRTM elevation DEM
     Tile,           ///< MapLibre vector/raster tile service (MBTiles/PMTiles/XYZ)
-    TacticalTrack   ///< Live tactical symbols and telemetry overlay
+    TacticalTrack,  ///< Live tactical symbols and telemetry overlay
+    SampleEntity    ///< Sample entity overlay
 };
 
 /**

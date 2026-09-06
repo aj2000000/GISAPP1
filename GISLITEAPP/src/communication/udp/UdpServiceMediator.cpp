@@ -9,6 +9,10 @@
 #include "protocol/WireStructures.h"
 #include "handlers/UdpTrackMessageHandler.h"
 #include "ITrackRepository.h"
+
+#include "handlers/udpsampleentitymessagehandler.h"
+#include "ISampleEntityRepository.h"
+
 #include <QDateTime>
 #include <QDebug>
 
@@ -75,6 +79,16 @@ void UdpServiceMediator::registerTrackRepository(GISApp::Repositories::ITrackRep
         qInfo() << "[UdpServiceMediator] Registered UdpTrackMessageHandler with ITrackRepository.";
     }
 }
+
+void UdpServiceMediator::registerSampleEntityRepository(GISApp::Repositories::ISampleEntityRepository *sampleEntityRepo)
+{
+    if (m_dispatcher && sampleEntityRepo) {
+        auto sampleHandler = std::make_shared<GISApp::Core::Udp::Handlers::UdpSampleEntityMessageHandler>(sampleEntityRepo);
+        m_dispatcher->registerHandler(sampleHandler);
+        qInfo() << "[UdpServiceMediator] Registered UdpSampleEntityMessageHandler with ISampleEntityRepository.";
+    }
+}
+
 
 bool UdpServiceMediator::sendData(const QString &ip, quint16 port, const QByteArray &data)
 {

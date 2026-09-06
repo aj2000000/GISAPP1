@@ -50,20 +50,12 @@ echo "[*] Configuring and compiling GISLITEAPP..."
 cd "$APP_DIR"
 mkdir -p build/obj build/moc build/ui build/bin
 
-# Detect qmake command matching libQMapLibre Native Qt library linkage
-if ldd "$INSTALL_DIR/lib/libQMapLibre.so" 2>/dev/null | grep -q "/usr/lib/x86_64-linux-gnu/libQt6Core"; then
-    echo "[*] Detected libQMapLibre linked against system Qt 6. Using system qmake6."
-    if command -v qmake6 >/dev/null 2>&1; then
-        QMAKE_CMD="qmake6"
-    elif [ -x "/usr/bin/qmake6" ]; then
-        QMAKE_CMD="/usr/bin/qmake6"
-    fi
-    QT_DIR=""
+# Detect qmake command (prioritizing QT_DIR for Qt 6.11.2)
+if [ -x "$QT_DIR/bin/qmake" ]; then
+    QMAKE_CMD="$QT_DIR/bin/qmake"
+    export PATH="$QT_DIR/bin:$PATH"
 elif [ -x "$QT_DIR/bin/qmake6" ]; then
     QMAKE_CMD="$QT_DIR/bin/qmake6"
-    export PATH="$QT_DIR/bin:$PATH"
-elif [ -x "$QT_DIR/bin/qmake" ]; then
-    QMAKE_CMD="$QT_DIR/bin/qmake"
     export PATH="$QT_DIR/bin:$PATH"
 elif command -v qmake6 >/dev/null 2>&1; then
     QMAKE_CMD="qmake6"

@@ -226,7 +226,6 @@ bool TrackController::contributeActions(QMenu *parentMenu, const QPoint &screenP
                             .arg(track.trackName().isEmpty() ? QStringLiteral("TRK-%1").arg(trackId) : track.trackName())
                             .arg(trackId)
                             .arg(identStr));
-        entityMenu->setStyleSheet(parentMenu->styleSheet());
 
         // Level 3 Items (Sub-sub menu of the right-click menu, inside entity sub-menu):
         // 1. Show Details

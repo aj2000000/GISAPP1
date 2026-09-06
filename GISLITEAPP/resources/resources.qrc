@@ -6,5 +6,9 @@
         <file alias="checkbox_indeterminate_dark.svg">icons/checkbox_indeterminate_dark.svg</file>
         <file alias="branch_closed.svg">icons/branch_closed.svg</file>
         <file alias="branch_open.svg">icons/branch_open.svg</file>
+        <file alias="sample.svg">icons/sample.svg</file>
+        <file alias="sample.png">icons/sample.png</file>
+        <file alias="calendar_icon.svg">icons/calendar_icon.svg</file>
+        <file alias="calendar_icon_hover.svg">icons/calendar_icon_hover.svg</file>
     </qresource>
 </RCC>

@@ -66,6 +66,8 @@ typedef struct __attribute__ ((packed))
     double dir;        ///< Heading / bearing direction in degrees [0..360)
 } STRUCT_LOCATION;
 
+
+
 /**
  * @struct STRUCT_TRACK_ATTRIBUTES
  * @brief Classification and tactical attributes of a track entity.
@@ -132,6 +134,49 @@ typedef struct __attribute__ ((packed))
     STRUCT_TIME time; ///< Time element
 } STRUCT_DATE_TIME;
 
+/**
+ * @struct STRUCT_USER_REQ_RESP_DETAIL
+ * @brief User detail for request/response messages.
+ */
+typedef struct __attribute__ ((packed))
+{
+    STRING_100 username;
+} STRUCT_USER_REQ_RESP_DETAIL;
+
+/**
+ * @struct STRUCT_PARAMETER
+ * @brief Time range and parameter filters for entity requests.
+ */
+typedef struct __attribute__ ((packed))
+{
+    STRUCT_DATE_TIME fromDateTime;
+    STRUCT_DATE_TIME toDateTime;
+    // other params if introduced
+} STRUCT_PARAMETER;
+
+/**
+ * @struct REQ_ENTITY_MESSAGE
+ * @brief Message ID 1501: Request entity message sent to external applications over UDP.
+ */
+typedef struct __attribute__ ((packed))
+{
+    STRUCT_MESSAGE_HEADER       msg_header;      ///< Standard wire header
+    STRUCT_USER_REQ_RESP_DETAIL user_detail;     ///< Requesting user identification
+    STRUCT_PARAMETER            params;          ///< Time range parameters
+    UINT_8                      req_entity_type; ///< 1 for tracks
+} REQ_ENTITY_MESSAGE;
+
+typedef struct __attribute__ ((packed))
+{
+
+    UINT_32 entity_id;
+    STRING_100 entity_name;
+    UINT_8 entity_type; // 1-> point //2-> Beizure curve around point location //3-> a svg/png image named sample.png/svg
+    STRUCT_LOCATION entity_loc;
+    STRUCT_DATE_TIME entity_report_time;
+    STRING_100 entity_remark;
+} STRUCT_SAMPLE_ENTITY;
+
 #pragma pack(pop)
 
 /**
@@ -140,7 +185,7 @@ typedef struct __attribute__ ((packed))
  */
 typedef struct
 {
-    UINT_32                  track_id;           ///< Unique numerical track ID
+    UINT_32                 track_id;           ///< Unique numerical track ID
     STRING_100              track_name;         ///< Designated track callsign/name
     STRUCT_LOCATION         track_loc;          ///< Geographic position & kinematics
     IDENTITY                track_identity;     ///< Friendly, Hostile, Neutral, Unknown
@@ -164,4 +209,10 @@ typedef struct
     QVector<STRUCT_TRACK> tracks;       ///< Dynamic list of tracks
 } MAIN_LITE_TRACK_MSG;
 
+typedef struct
+{
+    STRUCT_MESSAGE_HEADER msg_header;
+    UINT_16               no_of_entity;
+    QVector<STRUCT_SAMPLE_ENTITY> entities;
+} MAIN_LITE_SAMPLE_ENTITY_MSG;
 #endif // WIRESTRUCTURES_H

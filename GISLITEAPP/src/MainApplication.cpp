@@ -6,6 +6,8 @@
 #include "UdpServiceMediator.h"
 #include "ITrackRepository.h"
 #include "TrackRepository.h"
+#include "ISampleEntityRepository.h"
+#include "sampleentityrepository.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -218,6 +220,10 @@ void MainApplication::onUserAuthenticated(const QString &username)
     // Register live track repository with UDP Mediator
     if (m_udpMediator && m_mainWindow && m_mainWindow->trackRepository()) {
         m_udpMediator->registerTrackRepository(m_mainWindow->trackRepository());
+    }
+        // Register live sample entity repository with UDP Mediator
+    if (m_udpMediator && m_mainWindow && m_mainWindow->sampleEntityRepository()) {
+        m_udpMediator->registerSampleEntityRepository(m_mainWindow->sampleEntityRepository());
     }
 
     m_mainWindow->showStatusMessage(tr("Welcome %1 — Workspace Ready").arg(username), 6000);

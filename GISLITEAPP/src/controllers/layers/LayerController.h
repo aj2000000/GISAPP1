@@ -40,6 +40,10 @@ namespace GISApp::Controllers::Tracks {
 class TrackController;
 }
 
+namespace GISApp::Controllers::SampleEntities {
+class SampleEntityController;
+}
+
 namespace GISApp::Controllers::Layers {
 
 /**
@@ -100,6 +104,12 @@ public:
      * @param[in] trackController Pointer to TrackController.
      */
     void setTrackController(GISApp::Controllers::Tracks::TrackController *trackController);
+
+    /**
+     * @brief Sets the SampleEntityController for sample entity visibility delegation.
+     * @param[in] sampleEntityController Pointer to SampleEntityController.
+     */
+    void setSampleEntityController(GISApp::Controllers::SampleEntities::SampleEntityController *sampleEntityController);
 
 public slots:
     /**
@@ -189,6 +199,7 @@ private:
     GISApp::UI::Layers::LayerTreePanel *m_panel;
     GISApp::Controllers::MapController *m_mapController{nullptr};
     GISApp::Controllers::Tracks::TrackController *m_trackController{nullptr};
+    GISApp::Controllers::SampleEntities::SampleEntityController *m_sampleEntityController{nullptr};
 };
 
 } // namespace GISApp::Controllers::Layers

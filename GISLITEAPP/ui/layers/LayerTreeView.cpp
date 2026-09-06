@@ -39,8 +39,12 @@ void LayerTreeView::contextMenuEvent(QContextMenuEvent *event)
         return;
     }
 
-    // Ensure right-clicked row is selected
-    setCurrentIndex(index);
+    // Ensure right-clicked row is selected and current in selectionModel
+    if (selectionModel()) {
+        selectionModel()->setCurrentIndex(index, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+    } else {
+        setCurrentIndex(index);
+    }
 
     QMenu menu(this);
     menu.setObjectName("LayerContextMenu");

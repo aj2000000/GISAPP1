@@ -175,10 +175,29 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             background-color: %2;
             color: %6;
             border: 1px solid %5;
+            padding: 4px;
+            border-radius: 6px;
+        }
+        QMenu::item {
+            padding: 6px 24px 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            background-color: transparent;
+            color: %6;
         }
         QMenu::item:selected {
-            background-color: %5;
-            color: %4;
+            background-color: %4;
+            color: #0a0e14;
+            font-weight: bold;
+        }
+        QMenu::item:disabled {
+            color: %7;
+            background-color: transparent;
+        }
+        QMenu::separator {
+            height: 1px;
+            background: %5;
+            margin: 4px 8px;
         }
         QFrame#HeaderBar {
             background-color: %2;
@@ -364,7 +383,17 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             color: %7;
             border-color: %5;
         }
-        QLineEdit, QTextEdit, QPlainTextEdit {
+        QPushButton[accent="true"] {
+            background-color: %4;
+            color: #ffffff;
+            border: 1px solid %4;
+        }
+        QPushButton[accent="true"]:hover {
+            background-color: %4;
+            border: 1px solid #ffffff;
+        }
+        /* Global Text Inputs */
+        QLineEdit, QTextEdit, QPlainTextEdit, QSpinBox {
             background-color: %1;
             color: %6;
             border: 1px solid %5;
@@ -372,6 +401,190 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             padding: 5px 8px;
             selection-background-color: %4;
             selection-color: #ffffff;
+        }
+        QLineEdit:hover, QTextEdit:hover, QPlainTextEdit:hover, QSpinBox:hover {
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+        QLineEdit:focus, QTextEdit:focus, QPlainTextEdit:focus, QSpinBox:focus {
+            border-color: %4;
+        }
+
+        /* =======================================================
+           QDateTimeEdit, QDateEdit, QTimeEdit
+           ======================================================= */
+        QDateTimeEdit, QDateEdit, QTimeEdit {
+            background-color: %1;
+            color: %6;
+            border: 1px solid %5;
+            border-radius: 6px;
+            padding: 5px 26px 5px 8px;
+            font-size: 11px;
+            font-weight: 500;
+            selection-background-color: %4;
+            selection-color: #ffffff;
+        }
+        QDateTimeEdit:hover, QDateEdit:hover, QTimeEdit:hover {
+            border-color: rgba(255, 255, 255, 0.35);
+        }
+        QDateTimeEdit:focus, QDateEdit:focus, QTimeEdit:focus {
+            border-color: %4;
+            background-color: %1;
+        }
+        QDateTimeEdit:disabled, QDateEdit:disabled, QTimeEdit:disabled {
+            background-color: rgba(255, 255, 255, 0.03);
+            color: %7;
+            border-color: %5;
+        }
+        QDateTimeEdit::drop-down, QDateEdit::drop-down, QTimeEdit::drop-down {
+            subcontrol-origin: padding;
+            subcontrol-position: top right;
+            width: 24px;
+            border-left: 1px solid %5;
+            border-top-right-radius: 5px;
+            border-bottom-right-radius: 5px;
+            background-color: rgba(255, 255, 255, 0.04);
+        }
+        QDateTimeEdit::drop-down:hover, QDateEdit::drop-down:hover, QTimeEdit::drop-down:hover {
+            background-color: %4;
+        }
+        QDateTimeEdit::drop-down:pressed, QDateEdit::drop-down:pressed, QTimeEdit::drop-down:pressed {
+            background-color: %4;
+        }
+        QDateTimeEdit::down-arrow, QDateEdit::down-arrow, QTimeEdit::down-arrow {
+            image: url(:/icons/calendar_icon.svg);
+            width: 14px;
+            height: 14px;
+        }
+        QDateTimeEdit::drop-down:hover QDateTimeEdit::down-arrow,
+        QDateEdit::drop-down:hover QDateEdit::down-arrow,
+        QTimeEdit::drop-down:hover QTimeEdit::down-arrow {
+            image: url(:/icons/calendar_icon_hover.svg);
+        }
+
+        /* =======================================================
+           QCalendarWidget (Popup & Embedded)
+           ======================================================= */
+        QCalendarWidget {
+            background-color: %2;
+            border: 1px solid %5;
+            border-radius: 8px;
+        }
+        QCalendarWidget QWidget#qt_datetimedit_calendar {
+            background-color: %2;
+            border: 1px solid %5;
+            border-radius: 8px;
+        }
+        QCalendarWidget QWidget#qt_calendar_navigationbar {
+            background-color: %2;
+            border-bottom: 1px solid %5;
+            border-top-left-radius: 8px;
+            border-top-right-radius: 8px;
+            padding: 4px;
+            min-height: 34px;
+        }
+        QCalendarWidget QToolButton {
+            color: %6;
+            background-color: rgba(255, 255, 255, 0.05);
+            border: 1px solid %5;
+            border-radius: 4px;
+            margin: 2px;
+            padding: 4px 8px;
+            font-size: 11px;
+            font-weight: bold;
+        }
+        QCalendarWidget QToolButton:hover {
+            background-color: %5;
+            border-color: %4;
+            color: %4;
+        }
+        QCalendarWidget QToolButton:pressed {
+            background-color: %4;
+            color: #ffffff;
+            border-color: %4;
+        }
+        QCalendarWidget QToolButton::menu-indicator {
+            image: none;
+            width: 0px;
+        }
+        QCalendarWidget QMenu {
+            background-color: %2;
+            color: %6;
+            border: 1px solid %5;
+            border-radius: 6px;
+            padding: 4px;
+        }
+        QCalendarWidget QMenu::item {
+            padding: 5px 18px 5px 12px;
+            border-radius: 4px;
+            color: %6;
+        }
+        QCalendarWidget QMenu::item:selected {
+            background-color: %4;
+            color: #0a0e14;
+            font-weight: bold;
+        }
+        QCalendarWidget QSpinBox {
+            background-color: %1;
+            color: %6;
+            border: 1px solid %5;
+            border-radius: 4px;
+            padding: 2px 4px;
+            font-size: 11px;
+            font-weight: bold;
+            selection-background-color: %4;
+            selection-color: #ffffff;
+        }
+        QCalendarWidget QSpinBox:focus {
+            border-color: %4;
+        }
+        QCalendarWidget QSpinBox::up-button, QCalendarWidget QSpinBox::down-button {
+            subcontrol-origin: border;
+            width: 14px;
+            background-color: %2;
+            border-left: 1px solid %5;
+        }
+        QCalendarWidget QSpinBox::up-button:hover, QCalendarWidget QSpinBox::down-button:hover {
+            background-color: %4;
+        }
+        QCalendarWidget QTableView {
+            background-color: %1;
+            color: %6;
+            border: none;
+            selection-background-color: %4;
+            selection-color: #ffffff;
+            gridline-color: rgba(255, 255, 255, 0.05);
+            font-size: 11px;
+            outline: none;
+        }
+        QCalendarWidget QTableView:enabled {
+            color: %6;
+        }
+        QCalendarWidget QTableView:disabled {
+            color: %7;
+        }
+        QCalendarWidget QHeaderView {
+            background-color: %2;
+            border: none;
+        }
+        QCalendarWidget QHeaderView::section {
+            background-color: %2;
+            color: %7;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            border-bottom: 1px solid %5;
+            padding: 4px 0px;
+            text-align: center;
+        }
+        QCalendarWidget QAbstractItemView:enabled {
+            background-color: %1;
+            color: %6;
+            selection-background-color: %4;
+            selection-color: #ffffff;
+        }
+        QCalendarWidget QAbstractItemView:disabled {
+            color: %7;
+            background-color: %1;
         }
 
         /* =======================================================
@@ -873,10 +1086,11 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         }
 
         /* =======================================================
-           Tactical Track Detail & Inspector Dialogs
+           Tactical Track & Sample Entity Detail / Inspector Dialogs
            ======================================================= */
         QDialog#TrackDetailDialog,
-        QDialog#TrackEditDialog {
+        QDialog#TrackEditDialog,
+        QDialog#SampleEntityDetailDialog {
             background-color: %2;
             color: %6;
             border: 1px solid %5;
@@ -884,12 +1098,17 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         }
         QDialog#TrackDetailDialog QScrollArea,
         QDialog#TrackDetailDialog QScrollArea > QWidget > QWidget,
-        QDialog#TrackDetailDialog QWidget#scrollContent {
+        QDialog#TrackDetailDialog QWidget#scrollContent,
+        QDialog#SampleEntityDetailDialog QScrollArea,
+        QDialog#SampleEntityDetailDialog QScrollArea > QWidget > QWidget,
+        QDialog#SampleEntityDetailDialog QWidget#scrollContent {
             background-color: %2;
             border: none;
         }
         QDialog#TrackDetailDialog QGroupBox,
-        QDialog#TrackEditDialog QGroupBox {
+        QDialog#TrackEditDialog QGroupBox,
+        QDialog#TrackRequestDialog QGroupBox,
+        QDialog#SampleEntityDetailDialog QGroupBox {
             background-color: %1;
             font-size: 11px;
             font-weight: bold;
@@ -901,7 +1120,9 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             padding-bottom: 10px;
         }
         QDialog#TrackDetailDialog QGroupBox::title,
-        QDialog#TrackEditDialog QGroupBox::title {
+        QDialog#TrackEditDialog QGroupBox::title,
+        QDialog#TrackRequestDialog QGroupBox::title,
+        QDialog#SampleEntityDetailDialog QGroupBox::title {
             subcontrol-origin: margin;
             subcontrol-position: top left;
             left: 12px;
@@ -911,14 +1132,16 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             border: 1px solid %5;
             border-radius: 3px;
         }
-        QLabel#TrackDetailCaption {
+        QLabel#TrackDetailCaption,
+        QLabel#SampleEntityDetailCaption {
             color: %7;
             font-size: 10px;
             font-weight: bold;
             letter-spacing: 0.5px;
             background: transparent;
         }
-        QLabel#TrackDetailValue {
+        QLabel#TrackDetailValue,
+        QLabel#SampleEntityDetailValue {
             color: %6;
             background-color: %2;
             border: 1px solid %5;
@@ -927,8 +1150,10 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             font-size: 11px;
             font-weight: 600;
         }
-        QLabel#TrackDetailTitle {
-            font-size: 18px;
+        QLabel#TrackDetailTitle,
+        QLabel#SampleEntityDetailTitle,
+        QLabel#TrackEditTitle {
+            font-size: 16px;
             font-weight: bold;
             color: %6;
             background: transparent;
@@ -959,7 +1184,33 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             color: #fde047;
             border: 1px solid #eab308;
         }
-        QPushButton#TrackDetailCloseBtn {
+
+        QLabel#SampleEntityDetailTypeBadge {
+            font-weight: bold;
+            padding: 2px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            background-color: #455a64;
+            color: white;
+        }
+        QLabel#SampleEntityDetailTypeBadge[entityType="1"] {
+            background-color: #0c4a6e;
+            color: #7dd3fc;
+            border: 1px solid #00d2ff;
+        }
+        QLabel#SampleEntityDetailTypeBadge[entityType="2"] {
+            background-color: #713f12;
+            color: #fde047;
+            border: 1px solid #eab308;
+        }
+        QLabel#SampleEntityDetailTypeBadge[entityType="3"] {
+            background-color: #581c87;
+            color: #e9d5ff;
+            border: 1px solid #a855f7;
+        }
+
+        QPushButton#TrackDetailCloseBtn,
+        QPushButton#SampleEntityDetailCloseBtn {
             background-color: %1;
             color: %6;
             border: 1px solid %5;
@@ -968,10 +1219,44 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             font-size: 12px;
             font-weight: bold;
         }
-        QPushButton#TrackDetailCloseBtn:hover {
+        QPushButton#TrackDetailCloseBtn:hover,
+        QPushButton#SampleEntityDetailCloseBtn:hover {
             background-color: %5;
             color: %4;
             border-color: %4;
+        }
+
+        QPushButton#TrackEditSaveBtn {
+            background-color: #0284c7;
+            color: #ffffff;
+            border: 1px solid %4;
+            padding: 7px 20px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        QPushButton#TrackEditSaveBtn:hover {
+            background-color: #0369a1;
+        }
+        QPushButton#TrackEditCancelBtn {
+            background-color: %1;
+            color: %7;
+            border: 1px solid %5;
+            padding: 7px 18px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+        QPushButton#TrackEditCancelBtn:hover {
+            background-color: %5;
+            color: %6;
+        }
+
+        QLabel#ValidationFeedbackLabel,
+        QLabel#TrackRequestValidationLabel {
+            color: #ef4444;
+            font-weight: bold;
+            font-size: 11px;
+            background: transparent;
         }
 
         /* =======================================================

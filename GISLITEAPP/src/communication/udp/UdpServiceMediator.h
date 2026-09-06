@@ -28,6 +28,7 @@
 
 namespace GISApp::Repositories {
 class ITrackRepository;
+class ISampleEntityRepository;
 }
 
 namespace GISApp::Communication::Udp {
@@ -69,6 +70,14 @@ public:
      */
     void registerTrackRepository(GISApp::Repositories::ITrackRepository *trackRepo);
 
+
+        /**
+     * @brief Binds a sample entity repository and registers UdpSampleEntityMessageHandler for Message ID 904.
+     * @param[in] sampleEntityRepo Pointer to ISampleEntityRepository.
+     */
+    void registerSampleEntityRepository(GISApp::Repositories::ISampleEntityRepository *sampleEntityRepo);
+
+    
     /**
      * @brief Provides access to the message dispatcher for registering domain handlers.
      * @return Pointer to internal UdpMessageDispatcher.

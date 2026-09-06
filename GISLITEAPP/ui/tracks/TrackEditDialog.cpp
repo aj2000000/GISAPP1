@@ -37,22 +37,7 @@ TrackEditDialog::~TrackEditDialog() = default;
 
 void TrackEditDialog::setupUi()
 {
-    setStyleSheet(QStringLiteral(
-        "QDialog { background-color: #0d131a; color: #e2e8f0; font-family: 'Segoe UI', Inter, sans-serif; }"
-        "QGroupBox { font-size: 11px; font-weight: bold; color: #00d2ff; border: 1px solid #1f2937; "
-        "            border-radius: 6px; margin-top: 12px; padding-top: 14px; padding-bottom: 8px; }"
-        "QGroupBox::title { subcontrol-origin: margin; subcontrol-position: top left; left: 10px; padding: 0 4px; background: #0d131a; }"
-        "QLabel { font-size: 11px; color: #94a3b8; font-weight: bold; }"
-        "QLineEdit, QComboBox, QSpinBox, QDoubleSpinBox { background-color: #1a222d; color: #f8fafc; border: 1px solid #334155; "
-        "                                               border-radius: 4px; padding: 5px 8px; font-size: 11px; }"
-        "QLineEdit:focus, QComboBox:focus, QSpinBox:focus, QDoubleSpinBox:focus { border-color: #00d2ff; }"
-        "QPushButton#saveBtn { background-color: #0284c7; color: #ffffff; border: 1px solid #00d2ff; "
-        "                      padding: 7px 20px; border-radius: 4px; font-size: 12px; font-weight: bold; }"
-        "QPushButton#saveBtn:hover { background-color: #0369a1; }"
-        "QPushButton#cancelBtn { background-color: #1e293b; color: #cbd5e1; border: 1px solid #334155; "
-        "                        padding: 7px 18px; border-radius: 4px; font-size: 12px; }"
-        "QPushButton#cancelBtn:hover { background-color: #334155; }"
-    ));
+    setObjectName(QStringLiteral("TrackEditDialog"));
 
     auto *mainLayout = new QVBoxLayout(this);
     mainLayout->setContentsMargins(18, 18, 18, 18);
@@ -62,7 +47,7 @@ void TrackEditDialog::setupUi()
     auto *titleLabel = new QLabel(QStringLiteral("Edit Parameters: %1 (ID: %2)")
                                       .arg(m_track.trackName().isEmpty() ? QStringLiteral("TRK-%1").arg(m_trackId) : m_track.trackName())
                                       .arg(m_trackId), this);
-    titleLabel->setStyleSheet(QStringLiteral("font-size: 15px; font-weight: bold; color: #ffffff; margin-bottom: 4px;"));
+    titleLabel->setObjectName(QStringLiteral("TrackEditTitle"));
     mainLayout->addWidget(titleLabel);
 
     // 1. Identification & Classification Group
@@ -145,12 +130,12 @@ void TrackEditDialog::setupUi()
     btnLayout->addStretch(1);
 
     m_cancelButton = new QPushButton(QStringLiteral("Cancel"), this);
-    m_cancelButton->setObjectName(QStringLiteral("cancelBtn"));
+    m_cancelButton->setObjectName(QStringLiteral("TrackEditCancelBtn"));
     connect(m_cancelButton, &QPushButton::clicked, this, &QDialog::reject);
     btnLayout->addWidget(m_cancelButton);
 
     m_saveButton = new QPushButton(QStringLiteral("Save Changes"), this);
-    m_saveButton->setObjectName(QStringLiteral("saveBtn"));
+    m_saveButton->setObjectName(QStringLiteral("TrackEditSaveBtn"));
     connect(m_saveButton, &QPushButton::clicked, this, &TrackEditDialog::onSaveClicked);
     btnLayout->addWidget(m_saveButton);
 

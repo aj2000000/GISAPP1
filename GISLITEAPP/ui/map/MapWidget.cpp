@@ -176,12 +176,6 @@ void MapWidget::showContextMenu(const QPointF &pos, const QPoint &globalPos)
     }
 
     QMenu menu(this);
-    menu.setStyleSheet(QStringLiteral(
-        "QMenu { background-color: #121820; color: #e2e8f0; border: 1px solid #2d3748; padding: 4px; border-radius: 6px; }"
-        "QMenu::item { padding: 6px 24px 6px 12px; border-radius: 4px; font-size: 12px; }"
-        "QMenu::item:selected { background-color: #00d2ff; color: #0a0e14; font-weight: bold; }"
-        "QMenu::separator { height: 1px; background: #2d3748; margin: 4px 8px; }"
-    ));
 
     // Sort contributors by priority descending
     auto sortedContributors = m_contextMenuContributors;

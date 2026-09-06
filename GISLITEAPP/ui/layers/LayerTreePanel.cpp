@@ -180,11 +180,20 @@ void LayerTreePanel::setModel(QAbstractItemModel *model)
 
 QModelIndex LayerTreePanel::selectedIndex() const
 {
-    if (!m_treeView || !m_treeView->selectionModel()) {
+    if (!m_treeView) {
         return QModelIndex();
     }
-    QModelIndexList selected = m_treeView->selectionModel()->selectedRows();
-    return selected.isEmpty() ? QModelIndex() : selected.first();
+    if (auto *selModel = m_treeView->selectionModel()) {
+        const QModelIndexList rows = selModel->selectedRows();
+        if (!rows.isEmpty()) {
+            return rows.first();
+        }
+        const QModelIndexList idxs = selModel->selectedIndexes();
+        if (!idxs.isEmpty()) {
+            return idxs.first();
+        }
+    }
+    return m_treeView->currentIndex();
 }
 
 void LayerTreePanel::updateLayerCount(int count)
