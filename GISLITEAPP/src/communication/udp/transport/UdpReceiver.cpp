@@ -68,10 +68,10 @@ void UdpReceiver::onReadyRead()
     while (m_socket->hasPendingDatagrams()) {
         qint64 pendingSize = m_socket->pendingDatagramSize();
 
-        // 1. Enforce MAX_UDP_PACKET_SIZE (1500 bytes) on received single datagram
-        if (pendingSize > MAX_UDP_PACKET_SIZE) {
+        // 1. Enforce MAX_MSG_SIZE (8000 bytes) on received single datagram matching STRUCT_MQBUF capacity
+        if (pendingSize > MAX_MSG_SIZE) {
             qWarning() << "[UdpReceiver] Datagram size (" << pendingSize
-                       << "bytes) exceeds MAX_UDP_PACKET_SIZE (" << MAX_UDP_PACKET_SIZE
+                       << "bytes) exceeds MAX_MSG_SIZE (" << MAX_MSG_SIZE
                        << "bytes). Discarding oversized datagram.";
             m_socket->readDatagram(nullptr, 0);
             continue;
@@ -89,10 +89,10 @@ void UdpReceiver::onReadyRead()
         QHostAddress senderAddress;
         quint16 senderPort = 0;
 
-        char packetBuffer[MAX_UDP_PACKET_SIZE];
+        char packetBuffer[MAX_MSG_SIZE];
         qint64 bytesRead = m_socket->readDatagram(
             packetBuffer,
-            MAX_UDP_PACKET_SIZE,
+            MAX_MSG_SIZE,
             &senderAddress,
             &senderPort
         );

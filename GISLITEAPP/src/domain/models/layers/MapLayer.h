@@ -21,7 +21,8 @@ enum class LayerType {
     Elevation,      ///< DTED / SRTM elevation DEM
     Tile,           ///< MapLibre vector/raster tile service (MBTiles/PMTiles/XYZ)
     TacticalTrack,  ///< Live tactical symbols and telemetry overlay
-    SampleEntity    ///< Sample entity overlay
+    SampleEntity,   ///< Sample entity overlay
+    ComplexEntity   ///< Dynamic multi-geometry complex entity overlay
 };
 
 /**

@@ -74,6 +74,12 @@ INCLUDEPATH += \
     src/common \
     src/ui_models/sampleentities \
     ui/sampleentities \
+    ui/complexentities \
+    src/domain/models/complexentities \
+    src/repositories/complexentities \
+    src/services/complexentities \
+    src/controllers/complexentities \
+    src/ui_models/complexentities \
 
 
 
@@ -131,6 +137,17 @@ SOURCES += \
     ui/sampleentities/SampleEntityDetailDialog.cpp \
     src/controllers/sampleentities/SampleEntityController.cpp \
     ui/map/renderers/SampleEntityMapRenderer.cpp \
+    src/domain/models/complexentities/ComplexEntity.cpp \
+    src/repositories/complexentities/SqliteComplexEntityRepository.cpp \
+    src/services/complexentities/ComplexEntityService.cpp \
+    src/communication/udp/handlers/UdpComplexEntityMessageHandler.cpp \
+    ui/map/renderers/ComplexEntityMapRenderer.cpp \
+    src/ui_models/complexentities/ComplexEntityTableModel.cpp \
+    ui/complexentities/ComplexEntityDetailDialog.cpp \
+    ui/complexentities/ComplexEntityEditDialog.cpp \
+    ui/complexentities/ComplexEntityLocationEditOverlay.cpp \
+    ui/complexentities/ComplexEntityTablePanelDialog.cpp \
+    src/controllers/complexentities/ComplexEntityController.cpp \
 
 
 
@@ -142,6 +159,7 @@ HEADERS += \
     src/core/interfaces/IMapFeature.h \
     src/core/interfaces/IMapFeatureRenderer.h \
     src/core/interfaces/IContextMenuContributor.h \
+    src/core/interfaces/IMapInteractionListener.h \
     src/domain/models/sampleentities/sampleentity.h \
     src/repositories/interfaces/ISampleEntityRepository.h \
     src/repositories/sampleentities/sampleentityrepository.h \
@@ -202,6 +220,19 @@ HEADERS += \
     src/controllers/sampleentities/SampleEntityController.h \
     ui/map/renderers/SampleEntityMapRenderer.h \
     ui/map/renderers/SampleEntityMapFeatureAdapter.h \
+    src/domain/models/complexentities/ComplexEntity.h \
+    src/repositories/interfaces/IComplexEntityRepository.h \
+    src/repositories/complexentities/SqliteComplexEntityRepository.h \
+    src/services/complexentities/ComplexEntityService.h \
+    src/communication/udp/handlers/UdpComplexEntityMessageHandler.h \
+    ui/map/renderers/ComplexEntityMapFeatureAdapter.h \
+    ui/map/renderers/ComplexEntityMapRenderer.h \
+    src/ui_models/complexentities/ComplexEntityTableModel.h \
+    ui/complexentities/ComplexEntityDetailDialog.h \
+    ui/complexentities/ComplexEntityEditDialog.h \
+    ui/complexentities/ComplexEntityLocationEditOverlay.h \
+    ui/complexentities/ComplexEntityTablePanelDialog.h \
+    src/controllers/complexentities/ComplexEntityController.h \
 
 
 

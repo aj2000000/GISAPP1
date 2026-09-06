@@ -13,6 +13,9 @@
 #include "handlers/udpsampleentitymessagehandler.h"
 #include "ISampleEntityRepository.h"
 
+#include "handlers/UdpComplexEntityMessageHandler.h"
+#include "IComplexEntityRepository.h"
+
 #include <QDateTime>
 #include <QDebug>
 
@@ -86,6 +89,15 @@ void UdpServiceMediator::registerSampleEntityRepository(GISApp::Repositories::IS
         auto sampleHandler = std::make_shared<GISApp::Core::Udp::Handlers::UdpSampleEntityMessageHandler>(sampleEntityRepo);
         m_dispatcher->registerHandler(sampleHandler);
         qInfo() << "[UdpServiceMediator] Registered UdpSampleEntityMessageHandler with ISampleEntityRepository.";
+    }
+}
+
+void UdpServiceMediator::registerComplexEntityRepository(GISApp::Repositories::IComplexEntityRepository *complexEntityRepo)
+{
+    if (m_dispatcher && complexEntityRepo) {
+        auto complexHandler = std::make_shared<GISApp::Core::Udp::Handlers::UdpComplexEntityMessageHandler>(complexEntityRepo);
+        m_dispatcher->registerHandler(complexHandler);
+        qInfo() << "[UdpServiceMediator] Registered UdpComplexEntityMessageHandler with IComplexEntityRepository.";
     }
 }
 

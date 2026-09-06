@@ -28,6 +28,7 @@
 #include <algorithm>
 
 #include "IContextMenuContributor.h"
+#include "IMapInteractionListener.h"
 
 namespace GISApp::UI {
 
@@ -45,6 +46,11 @@ MapWidget::MapWidget(QWidget *parent)
 
 MapWidget::~MapWidget()
 {
+    if (m_nativeMapWidget) {
+        m_nativeMapWidget->removeEventFilter(this);
+    }
+    m_activeInteractionListener = nullptr;
+    m_interactionListeners.clear();
 }
 
 void MapWidget::setupMapLibre()
@@ -137,16 +143,54 @@ bool MapWidget::eventFilter(QObject *watched, QEvent *event)
         if (event->type() == QEvent::MouseMove) {
             auto *mouseEvent = static_cast<QMouseEvent*>(event);
             handleHoverPosition(mouseEvent->position());
-        } else if (event->type() == QEvent::ContextMenu) {
-            auto *contextEvent = static_cast<QContextMenuEvent*>(event);
-            showContextMenu(contextEvent->pos(), contextEvent->globalPos());
-            return true;
+
+            if (m_nativeMapWidget && m_nativeMapWidget->map()) {
+                QMapLibre::Coordinate coord = m_nativeMapWidget->map()->coordinateForPixel(mouseEvent->position());
+                QPointF geoPoint(coord.first, coord.second);
+
+                if (m_activeInteractionListener) {
+                    if (m_activeInteractionListener->onMapMouseMove(mouseEvent->position(), geoPoint, mouseEvent->buttons())) {
+                        return true; // Suppress MapLibre panning during active listener drag
+                    }
+                } else {
+                    for (auto *listener : m_interactionListeners) {
+                        if (listener && listener->onMapMouseMove(mouseEvent->position(), geoPoint, mouseEvent->buttons())) {
+                            break;
+                        }
+                    }
+                }
+            }
+        } else if (event->type() == QEvent::MouseButtonPress) {
+            auto *mouseEvent = static_cast<QMouseEvent*>(event);
+            if (mouseEvent->button() == Qt::LeftButton && m_nativeMapWidget && m_nativeMapWidget->map()) {
+                QMapLibre::Coordinate coord = m_nativeMapWidget->map()->coordinateForPixel(mouseEvent->position());
+                QPointF geoPoint(coord.first, coord.second);
+                for (auto *listener : m_interactionListeners) {
+                    if (listener && listener->onMapMousePress(mouseEvent->position(), geoPoint, Qt::LeftButton)) {
+                        m_activeInteractionListener = listener;
+                        return true; // Suppress MapLibre default panning
+                    }
+                }
+            }
         } else if (event->type() == QEvent::MouseButtonRelease) {
             auto *mouseEvent = static_cast<QMouseEvent*>(event);
+            if (m_activeInteractionListener && m_nativeMapWidget && m_nativeMapWidget->map()) {
+                QMapLibre::Coordinate coord = m_nativeMapWidget->map()->coordinateForPixel(mouseEvent->position());
+                QPointF geoPoint(coord.first, coord.second);
+                bool consumed = m_activeInteractionListener->onMapMouseRelease(mouseEvent->position(), geoPoint, mouseEvent->button());
+                m_activeInteractionListener = nullptr;
+                if (consumed) {
+                    return true;
+                }
+            }
             if (mouseEvent->button() == Qt::RightButton) {
                 showContextMenu(mouseEvent->position(), mouseEvent->globalPosition().toPoint());
                 return true;
             }
+        } else if (event->type() == QEvent::ContextMenu) {
+            auto *contextEvent = static_cast<QContextMenuEvent*>(event);
+            showContextMenu(contextEvent->pos(), contextEvent->globalPos());
+            return true;
         }
     }
     return QWidget::eventFilter(watched, event);
@@ -162,6 +206,21 @@ void MapWidget::registerContextMenuContributor(GISApp::Core::Interfaces::IContex
 void MapWidget::unregisterContextMenuContributor(GISApp::Core::Interfaces::IContextMenuContributor *contributor)
 {
     m_contextMenuContributors.removeAll(contributor);
+}
+
+void MapWidget::addInteractionListener(GISApp::Core::Interfaces::IMapInteractionListener *listener)
+{
+    if (listener && !m_interactionListeners.contains(listener)) {
+        m_interactionListeners.append(listener);
+    }
+}
+
+void MapWidget::removeInteractionListener(GISApp::Core::Interfaces::IMapInteractionListener *listener)
+{
+    m_interactionListeners.removeAll(listener);
+    if (m_activeInteractionListener == listener) {
+        m_activeInteractionListener = nullptr;
+    }
 }
 
 void MapWidget::showContextMenu(const QPointF &pos, const QPoint &globalPos)

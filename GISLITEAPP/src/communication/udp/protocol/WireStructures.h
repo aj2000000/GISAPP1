@@ -21,7 +21,7 @@
 // ==============================================================================
 
 const int NO_OF_MSG_IN_QUEUE     = 3000; ///< Maximum number of datagrams in ring buffer
-const int MAX_MSG_SIZE           = 8000; ///< Maximum reassembled datagram message size in bytes
+const int MAX_MSG_SIZE           = 22000; ///< Maximum reassembled datagram message size in bytes
 const int MAX_UDP_PACKET_SIZE    = 1500; ///< Maximum single UDP packet size on the wire (Ethernet MTU limit)
 const int MAX_SENT_MSG_DATA_SIZE = MAX_UDP_PACKET_SIZE; ///< Backward-compatibility alias
 
@@ -177,6 +177,14 @@ typedef struct __attribute__ ((packed))
     STRING_100 entity_remark;
 } STRUCT_SAMPLE_ENTITY;
 
+typedef struct __attribute__ ((packed))
+{
+    int valType; // 1-> int //2-> double //3-> string
+    STRING_100 valkey;
+    STRING_100 valStr;
+    // other params if introduced
+} STRUCT_DETAILS;
+
 #pragma pack(pop)
 
 /**
@@ -215,4 +223,39 @@ typedef struct
     UINT_16               no_of_entity;
     QVector<STRUCT_SAMPLE_ENTITY> entities;
 } MAIN_LITE_SAMPLE_ENTITY_MSG;
+
+/**
+ * @struct STRUCT_COMPLEX_ENTITY
+ * @brief Dynamic complex entity record representation matching wire format.
+ */
+typedef struct
+{
+    UINT_32 entity_id;
+    STRING_100 entity_name;
+    UINT_8 entity_type; // 1-> point //2->line //3-polygon //4->textonly //5 ->custom image //6 -> custom painter //7 -> formation boundary (group of points)
+    UINT_16 no_of_location_points; // for line, polygon, and formation boundary
+    QVector<STRUCT_LOCATION> entity_location_points; // for line, polygon, and formation boundary
+    STRING_100 left_annotation;
+    STRING_100 right_annotation;
+    STRING_100 top_annotation;
+    STRING_100 bottom_annotation;
+    UINT_16 special_param1;
+    UINT_16 special_param2;
+    UINT_16 special_param3;
+    UINT_16 special_param4;
+    int no_of_details;
+    QVector<STRUCT_DETAILS> entity_details;
+} STRUCT_COMPLEX_ENTITY;
+
+/**
+ * @struct MAIN_LITE_COMPLEX_ENTITY_MSG
+ * @brief Message ID 905 datagram containing batch complex entity records.
+ */
+typedef struct
+{
+    STRUCT_MESSAGE_HEADER msg_header;
+    UINT_16               no_of_entity;
+    QVector<STRUCT_COMPLEX_ENTITY> entities;
+} MAIN_LITE_COMPLEX_ENTITY_MSG;
+
 #endif // WIRESTRUCTURES_H

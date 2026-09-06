@@ -34,6 +34,14 @@
 #include "SampleEntityMapRenderer.h"
 #include "SampleEntityController.h"
 
+#include "SqliteComplexEntityRepository.h"
+#include "ComplexEntityService.h"
+#include "ComplexEntityTableModel.h"
+#include "ComplexEntityTablePanelDialog.h"
+#include "ComplexEntityDetailDialog.h"
+#include "ComplexEntityMapRenderer.h"
+#include "ComplexEntityController.h"
+
 
 #include <QApplication>
 #include <QAction>
@@ -68,6 +76,12 @@ MainBaseUI::MainBaseUI(QWidget *parent, WindowStartupMode startupMode)
     , m_trackTableDialog(nullptr)
     , m_sampleEntityMapRenderer(nullptr)
     , m_sampleEntityController(nullptr)
+    , m_complexEntityRepository(nullptr)
+    , m_complexEntityService(nullptr)
+    , m_complexEntityTableModel(nullptr)
+    , m_complexEntityTableDialog(nullptr)
+    , m_complexEntityMapRenderer(nullptr)
+    , m_complexEntityController(nullptr)
 {
     setupUi();
     setupMenuBar();
@@ -141,6 +155,20 @@ void MainBaseUI::setupUi()
     );
     m_sampleEntityController->initialize();
 
+    // Initialize Complex Entity Repository, Service, Table UI Model, Renderer & Controller
+    m_complexEntityRepository = new GISApp::Repositories::ComplexEntities::SqliteComplexEntityRepository(this);
+    m_complexEntityService = new GISApp::Services::ComplexEntities::ComplexEntityService(m_complexEntityRepository, this);
+    m_complexEntityTableModel = new GISApp::UIModels::ComplexEntities::ComplexEntityTableModel(m_complexEntityRepository, this);
+    m_complexEntityMapRenderer = new GISApp::UI::Renderers::ComplexEntityMapRenderer(m_mapViewContainer->mapWidget(), this);
+    m_complexEntityController = new GISApp::Controllers::ComplexEntities::ComplexEntityController(
+        m_complexEntityService,
+        m_complexEntityMapRenderer,
+        m_mapController,
+        this
+    );
+    m_complexEntityController->initialize();
+    m_complexEntityController->setMapViewContainer(m_mapViewContainer);
+
     // Initialize Track Repository, Tactical Track Service, Map Layer Renderer & Track Controller
     m_trackRepository = new GISApp::Repositories::Tracks::TrackRepository(this);
     m_tacticalTrackService = new GISApp::Services::Tracks::TacticalTrackService(m_trackRepository, this);
@@ -159,6 +187,7 @@ void MainBaseUI::setupUi()
     m_layerController->setMapController(m_mapController);
     m_layerController->setTrackController(m_trackController);
     m_layerController->setSampleEntityController(m_sampleEntityController);
+    m_layerController->setComplexEntityController(m_complexEntityController);
 
     // 4. Tactical Status Bar (Positioned directly above standard bottom status bar)
     m_tacticalStatusBar = new GISApp::UI::TacticalStatusBar(this);
@@ -215,6 +244,10 @@ void MainBaseUI::setupMenuBar()
     sampleEntityTableAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_E));
     sampleEntityTableAction->setStatusTip(tr("Open modeless sample entity table view dialog"));
 
+    QMenu *complexEntitySubMenu = tableMenu->addMenu(tr("&Complex Entity"));
+    QAction *complexEntityTableAction = complexEntitySubMenu->addAction(tr("Open &Complex Entity Table..."), this, &MainBaseUI::openComplexEntityTableDialog);
+    complexEntityTableAction->setShortcut(QKeySequence(Qt::CTRL | Qt::SHIFT | Qt::Key_C));
+    complexEntityTableAction->setStatusTip(tr("Open modeless complex entity table view dialog"));
 
     // Request Menu
     QMenu *requestMenu = menu->addMenu(tr("&Request"));
@@ -224,6 +257,9 @@ void MainBaseUI::setupMenuBar()
 
     QAction *requestSampleAction = requestMenu->addAction(tr("&Sample Entities..."), this, &MainBaseUI::openSampleEntityRequestDialog);
     requestSampleAction->setStatusTip(tr("Request sample entities from external system over UDP (Message ID 1501, entityType 2)"));
+
+    QAction *requestComplexAction = requestMenu->addAction(tr("&Complex Entities..."), this, &MainBaseUI::openComplexEntityRequestDialog);
+    requestComplexAction->setStatusTip(tr("Request complex entities from external system over UDP (Message ID 1501, entityType 3)"));
 
     // Theme Menu
     QMenu *themeMenu = menu->addMenu(tr("&Theme"));
@@ -336,6 +372,11 @@ void MainBaseUI::setupConnections()
 
         // Initialize TacticalStatusBar with active map camera state
         m_mapController->syncTelemetry();
+    }
+
+    if (m_complexEntityController) {
+        connect(m_complexEntityController, &GISApp::Controllers::ComplexEntities::ComplexEntityController::requestComplexEntitiesTriggered,
+                this, &MainBaseUI::openComplexEntityRequestDialog);
     }
 }
 
@@ -636,6 +677,120 @@ bool MainBaseUI::sendSampleEntityRequest(const QDateTime &fromDt, const QDateTim
     } else {
         qWarning() << "[MainBaseUI] Failed to send REQ_ENTITY_MESSAGE to" << targetIp << ":" << targetPort;
         showStatusMessage(tr("Failed to send sample entity request to %1:%2").arg(targetIp).arg(targetPort), 5000);
+    }
+
+    return sent;
+}
+
+/**
+ * @brief Opens or raises the modeless ComplexEntityTablePanelDialog.
+ */
+void MainBaseUI::openComplexEntityTableDialog()
+{
+    if (!m_complexEntityTableDialog) {
+        m_complexEntityTableDialog = new GISApp::UI::ComplexEntities::ComplexEntityTablePanelDialog(m_complexEntityTableModel, this);
+
+        connect(m_complexEntityTableDialog, &GISApp::UI::ComplexEntities::ComplexEntityTablePanelDialog::requestEntityDetails,
+                this, &MainBaseUI::showComplexEntityDetails);
+
+        connect(m_complexEntityTableDialog, &GISApp::UI::ComplexEntities::ComplexEntityTablePanelDialog::requestCenterOnEntity,
+                this, [this](double lat, double lon) {
+                    if (m_mapController) {
+                        m_mapController->setCenter(lat, lon);
+                    }
+                });
+    }
+
+    m_complexEntityTableDialog->show();
+    m_complexEntityTableDialog->raise();
+    m_complexEntityTableDialog->activateWindow();
+    showStatusMessage(tr("Opened Complex Entity Table"), 2000);
+}
+
+/**
+ * @brief Opens or raises the ComplexEntityDetailDialog for a specific entity ID.
+ * @param[in] entityId Unsigned integer entity ID.
+ */
+void MainBaseUI::showComplexEntityDetails(quint32 entityId)
+{
+    if (m_complexEntityController) {
+        m_complexEntityController->showEntityDetails(entityId);
+    }
+}
+
+/**
+ * @brief Opens the date/time dialog to query complex entities over UDP with req_entity_type = 3.
+ */
+void MainBaseUI::openComplexEntityRequestDialog()
+{
+    GISApp::UI::Tracks::TrackRequestDialog dialog(this);
+    dialog.setWindowTitle(tr("Request Complex Entities (Msg 1501, Type 3) - GISLITE"));
+    if (dialog.exec() == QDialog::Accepted) {
+        sendComplexEntityRequest(dialog.fromDateTime(), dialog.toDateTime());
+    }
+}
+
+/**
+ * @brief Constructs and dispatches a canonical binary REQ_ENTITY_MESSAGE (1501) with req_entity_type = 3.
+ * @param[in] fromDt Query start timestamp.
+ * @param[in] toDt Query termination timestamp.
+ * @return True if datagram sent successfully.
+ */
+bool MainBaseUI::sendComplexEntityRequest(const QDateTime &fromDt, const QDateTime &toDt)
+{
+    if (!MainApplication::instance() || !MainApplication::instance()->udpMediator()) {
+        qWarning() << "[MainBaseUI] Cannot send complex entity request: UdpServiceMediator not available.";
+        showStatusMessage(tr("Failed to send complex entity request: UDP service unavailable"), 5000);
+        return false;
+    }
+
+    REQ_ENTITY_MESSAGE reqMsg{};
+
+    // 1. Message Header (16 bytes packed)
+    reqMsg.msg_header.source_id      = CSCI_ID_DSS;
+    reqMsg.msg_header.destination_id = CSCI_ID_DFE;
+    reqMsg.msg_header.message_id     = REQ_ENTITY_MESSAGE_ID; // 1501
+    reqMsg.msg_header.message_len    = static_cast<MESSAGE_LENGTH>(sizeof(REQ_ENTITY_MESSAGE) - sizeof(STRUCT_MESSAGE_HEADER));
+    reqMsg.msg_header.packet_seq_no  = 1;
+    reqMsg.msg_header.no_of_packets  = 1;
+
+    // 2. User Identification
+    QString user = qEnvironmentVariable("USER", "OPERATOR_1");
+    qstrncpy(reqMsg.user_detail.username, user.toUtf8().constData(), sizeof(reqMsg.user_detail.username));
+
+    // 3. Time Range Parameters
+    auto toWireDateTime = [](const QDateTime &dt, STRUCT_DATE_TIME &wireDt) {
+        wireDt.date.day    = static_cast<UINT_8>(dt.date().day());
+        wireDt.date.month  = static_cast<UINT_8>(dt.date().month());
+        wireDt.date.year   = static_cast<UINT_16>(dt.date().year());
+        wireDt.time.hour   = static_cast<UINT_8>(dt.time().hour());
+        wireDt.time.minute = static_cast<UINT_8>(dt.time().minute());
+        wireDt.time.second = static_cast<UINT_16>(dt.time().second());
+    };
+    toWireDateTime(fromDt, reqMsg.params.fromDateTime);
+    toWireDateTime(toDt, reqMsg.params.toDateTime);
+
+    // 4. Requested Entity Type (3 = Complex Entities)
+    reqMsg.req_entity_type = 3;
+
+    QByteArray datagram(reinterpret_cast<const char*>(&reqMsg), sizeof(REQ_ENTITY_MESSAGE));
+
+    QString targetIp = GISApp::Communication::Udp::Config::UdpDataStore::instance().targetIp();
+    quint16 targetPort = GISApp::Communication::Udp::Config::UdpDataStore::instance().targetPort();
+
+    bool sent = MainApplication::instance()->udpMediator()->sendData(targetIp, targetPort, datagram);
+    if (sent) {
+        qInfo() << "[MainBaseUI] 📤 Sent REQ_ENTITY_MESSAGE (1501, entityType: 3) to" << targetIp << ":" << targetPort
+                << "for range" << fromDt.toString(Qt::ISODate) << "->" << toDt.toString(Qt::ISODate)
+                << "size:" << datagram.size() << "bytes";
+        showStatusMessage(tr("Complex Entity request (Msg 1501, Type 3) sent to %1:%2 [%3 to %4]")
+                              .arg(targetIp)
+                              .arg(targetPort)
+                              .arg(fromDt.toString("dd/MM HH:mm:ss"))
+                              .arg(toDt.toString("dd/MM HH:mm:ss")), 5000);
+    } else {
+        qWarning() << "[MainBaseUI] Failed to send REQ_ENTITY_MESSAGE to" << targetIp << ":" << targetPort;
+        showStatusMessage(tr("Failed to send complex entity request to %1:%2").arg(targetIp).arg(targetPort), 5000);
     }
 
     return sent;

@@ -8,6 +8,7 @@
 #include "ZoomControlsWidget.h"
 #include "RightToolPanel.h"
 #include "LayerTreePanel.h"
+#include "ComplexEntityLocationEditOverlay.h"
 
 #include <QResizeEvent>
 #include <QShowEvent>
@@ -21,6 +22,7 @@ MapViewContainer::MapViewContainer(QWidget *parent)
     , m_zoomControls(nullptr)
     , m_rightToolPanel(nullptr)
     , m_layerTreePanel(nullptr)
+    , m_locationEditOverlay(nullptr)
     , m_overlayMargin(18)
 {
     setObjectName("MapViewContainer");
@@ -40,10 +42,12 @@ void MapViewContainer::setupUi()
     m_rightToolPanel = new RightToolPanel(this);
     m_zoomControls = new ZoomControlsWidget(this);
     m_layerTreePanel = new GISApp::UI::Layers::LayerTreePanel(this);
+    m_locationEditOverlay = new GISApp::UI::ComplexEntities::ComplexEntityLocationEditOverlay(this);
 
     m_rightToolPanel->raise();
     m_zoomControls->raise();
     m_layerTreePanel->raise();
+    m_locationEditOverlay->raise();
 }
 
 void MapViewContainer::setupConnections()
@@ -128,6 +132,17 @@ void MapViewContainer::updateOverlayPositions()
             m_layerTreePanel->move(curX, curY);
         }
         m_layerTreePanel->raise();
+    }
+
+    // Position Floating Location Edit Ribbon horizontally centered at top
+    if (m_locationEditOverlay && m_locationEditOverlay->isVisible()) {
+        m_locationEditOverlay->adjustSize();
+        int overlayW = m_locationEditOverlay->width();
+        int overlayH = m_locationEditOverlay->height();
+        int x = std::max(0, (width() - overlayW) / 2);
+        int y = m_overlayMargin;
+        m_locationEditOverlay->setGeometry(x, y, overlayW, overlayH);
+        m_locationEditOverlay->raise();
     }
 }
 

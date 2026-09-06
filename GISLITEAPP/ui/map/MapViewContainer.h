@@ -21,6 +21,10 @@ namespace Layers {
 class LayerTreePanel;
 }
 
+namespace ComplexEntities {
+class ComplexEntityLocationEditOverlay;
+}
+
 /**
  * @class MapViewContainer
  * @brief Central GIS workspace view container integrating MapWidget with floating UI overlays.
@@ -77,6 +81,12 @@ public:
     [[nodiscard]] GISApp::UI::Layers::LayerTreePanel* layerTreePanel() const { return m_layerTreePanel; }
 
     /**
+     * @brief Returns a pointer to the floating ComplexEntity location edit ribbon overlay.
+     * @return Pointer to ComplexEntityLocationEditOverlay instance.
+     */
+    [[nodiscard]] GISApp::UI::ComplexEntities::ComplexEntityLocationEditOverlay* locationEditOverlay() const { return m_locationEditOverlay; }
+
+    /**
      * @brief Configures the pixel margin separating floating panels from the container edges.
      * @param[in] margin Pixel margin (e.g. 16 or 20 pixels). Must be non-negative.
      */
@@ -121,11 +131,13 @@ private:
      */
     void setupConnections();
 
+public slots:
     /**
      * @brief Recalculates and applies exact geometries for the base map and floating panels.
      */
     void updateOverlayPositions();
 
+private:
     /// Underlying hardware-accelerated MapLibre map widget instance
     MapWidget *m_mapWidget;
 
@@ -137,6 +149,9 @@ private:
 
     /// Floating layer tree panel managing layer ordering and visibility
     GISApp::UI::Layers::LayerTreePanel *m_layerTreePanel;
+
+    /// Floating tactical location edit ribbon pinned to top-center
+    GISApp::UI::ComplexEntities::ComplexEntityLocationEditOverlay *m_locationEditOverlay{nullptr};
 
     /// Offset margin in pixels between floating panels and container edges
     int m_overlayMargin;

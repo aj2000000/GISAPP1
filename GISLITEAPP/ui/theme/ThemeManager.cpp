@@ -1063,7 +1063,9 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
            Tactical Table Panels & Dialog Components
            ======================================================= */
         QDialog#BaseTablePanelDialog,
-        QDialog#TrackTablePanelDialog {
+        QDialog#TrackTablePanelDialog,
+        QDialog#SampleEntityTablePanelDialog,
+        QDialog#ComplexEntityTablePanelDialog {
             background-color: %2;
             color: %6;
             border: 1px solid %5;
@@ -1090,7 +1092,8 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
            ======================================================= */
         QDialog#TrackDetailDialog,
         QDialog#TrackEditDialog,
-        QDialog#SampleEntityDetailDialog {
+        QDialog#SampleEntityDetailDialog,
+        QDialog#ComplexEntityDetailDialog {
             background-color: %2;
             color: %6;
             border: 1px solid %5;
@@ -1101,14 +1104,18 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         QDialog#TrackDetailDialog QWidget#scrollContent,
         QDialog#SampleEntityDetailDialog QScrollArea,
         QDialog#SampleEntityDetailDialog QScrollArea > QWidget > QWidget,
-        QDialog#SampleEntityDetailDialog QWidget#scrollContent {
+        QDialog#SampleEntityDetailDialog QWidget#scrollContent,
+        QDialog#ComplexEntityDetailDialog QScrollArea,
+        QDialog#ComplexEntityDetailDialog QScrollArea > QWidget > QWidget,
+        QDialog#ComplexEntityDetailDialog QWidget#scrollContent {
             background-color: %2;
             border: none;
         }
         QDialog#TrackDetailDialog QGroupBox,
         QDialog#TrackEditDialog QGroupBox,
         QDialog#TrackRequestDialog QGroupBox,
-        QDialog#SampleEntityDetailDialog QGroupBox {
+        QDialog#SampleEntityDetailDialog QGroupBox,
+        QDialog#ComplexEntityDetailDialog QGroupBox {
             background-color: %1;
             font-size: 11px;
             font-weight: bold;
@@ -1122,7 +1129,8 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         QDialog#TrackDetailDialog QGroupBox::title,
         QDialog#TrackEditDialog QGroupBox::title,
         QDialog#TrackRequestDialog QGroupBox::title,
-        QDialog#SampleEntityDetailDialog QGroupBox::title {
+        QDialog#SampleEntityDetailDialog QGroupBox::title,
+        QDialog#ComplexEntityDetailDialog QGroupBox::title {
             subcontrol-origin: margin;
             subcontrol-position: top left;
             left: 12px;
@@ -1133,7 +1141,8 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             border-radius: 3px;
         }
         QLabel#TrackDetailCaption,
-        QLabel#SampleEntityDetailCaption {
+        QLabel#SampleEntityDetailCaption,
+        QLabel#ComplexEntityDetailCaption {
             color: %7;
             font-size: 10px;
             font-weight: bold;
@@ -1141,7 +1150,8 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             background: transparent;
         }
         QLabel#TrackDetailValue,
-        QLabel#SampleEntityDetailValue {
+        QLabel#SampleEntityDetailValue,
+        QLabel#ComplexEntityDetailValue {
             color: %6;
             background-color: %2;
             border: 1px solid %5;
@@ -1152,6 +1162,7 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
         }
         QLabel#TrackDetailTitle,
         QLabel#SampleEntityDetailTitle,
+        QLabel#ComplexEntityDetailTitle,
         QLabel#TrackEditTitle {
             font-size: 16px;
             font-weight: bold;
@@ -1209,8 +1220,84 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             border: 1px solid #a855f7;
         }
 
+        QLabel#ComplexEntityDetailTypeBadge {
+            font-weight: bold;
+            padding: 2px 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            background-color: #455a64;
+            color: white;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="1"] {
+            background-color: #0c4a6e;
+            color: #7dd3fc;
+            border: 1px solid #00d2ff;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="2"] {
+            background-color: #065f46;
+            color: #6ee7b7;
+            border: 1px solid #10b981;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="3"] {
+            background-color: #581c87;
+            color: #e9d5ff;
+            border: 1px solid #a855f7;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="4"] {
+            background-color: #713f12;
+            color: #fde047;
+            border: 1px solid #eab308;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="5"] {
+            background-color: #1e3a8a;
+            color: #93c5fd;
+            border: 1px solid #3b82f6;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="6"] {
+            background-color: #831843;
+            color: #fbcfe8;
+            border: 1px solid #f43f5e;
+        }
+        QLabel#ComplexEntityDetailTypeBadge[entityType="7"] {
+            background-color: #451a03;
+            color: #fde047;
+            border: 1px solid #ffd600;
+        }
+
+        QTableWidget#ComplexEntityPointsTable,
+        QTableWidget#ComplexEntityDetailsTable {
+            background-color: %1;
+            color: %6;
+            gridline-color: %5;
+            border: 1px solid %5;
+            border-radius: 6px;
+        }
+        QTableWidget#ComplexEntityPointsTable QHeaderView::section,
+        QTableWidget#ComplexEntityDetailsTable QHeaderView::section {
+            background-color: %2;
+            color: %4;
+            padding: 6px 10px;
+            font-weight: bold;
+            font-size: 11px;
+            border: none;
+            border-right: 1px solid %5;
+            border-bottom: 2px solid %4;
+        }
+        QTableWidget#ComplexEntityPointsTable::item,
+        QTableWidget#ComplexEntityDetailsTable::item {
+            padding: 4px 8px;
+            font-size: 12px;
+            border-bottom: 1px solid %5;
+        }
+        QTableWidget#ComplexEntityPointsTable::item:selected,
+        QTableWidget#ComplexEntityDetailsTable::item:selected {
+            background-color: %3;
+            color: #ffffff;
+        }
+
         QPushButton#TrackDetailCloseBtn,
-        QPushButton#SampleEntityDetailCloseBtn {
+        QPushButton#SampleEntityDetailCloseBtn,
+        QPushButton#ComplexEntityDetailCloseBtn {
             background-color: %1;
             color: %6;
             border: 1px solid %5;
@@ -1220,9 +1307,26 @@ QString ThemeManager::getStyleSheet(ThemeType theme) const
             font-weight: bold;
         }
         QPushButton#TrackDetailCloseBtn:hover,
-        QPushButton#SampleEntityDetailCloseBtn:hover {
+        QPushButton#SampleEntityDetailCloseBtn:hover,
+        QPushButton#ComplexEntityDetailCloseBtn:hover {
             background-color: %5;
             color: %4;
+            border-color: %4;
+        }
+        QPushButton#ComplexEntityDetailCenterBtn,
+        QPushButton#ComplexEntityDetailCopyBtn {
+            background-color: %1;
+            color: %4;
+            border: 1px solid %5;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        QPushButton#ComplexEntityDetailCenterBtn:hover,
+        QPushButton#ComplexEntityDetailCopyBtn:hover {
+            background-color: %5;
+            color: #ffffff;
             border-color: %4;
         }
 

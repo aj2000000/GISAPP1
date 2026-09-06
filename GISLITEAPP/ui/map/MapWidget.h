@@ -19,6 +19,7 @@ class Settings;
 
 namespace GISApp::Core::Interfaces {
 class IContextMenuContributor;
+class IMapInteractionListener;
 }
 
 namespace GISApp::UI {
@@ -162,6 +163,18 @@ public:
      */
     void unregisterContextMenuContributor(GISApp::Core::Interfaces::IContextMenuContributor *contributor);
 
+    /**
+     * @brief Registers an interactive map gesture listener (e.g. for control point dragging).
+     * @param[in] listener Pointer to IMapInteractionListener instance.
+     */
+    void addInteractionListener(GISApp::Core::Interfaces::IMapInteractionListener *listener);
+
+    /**
+     * @brief Unregisters a previously registered interactive map gesture listener.
+     * @param[in] listener Pointer to listener instance to remove.
+     */
+    void removeInteractionListener(GISApp::Core::Interfaces::IMapInteractionListener *listener);
+
 signals:
     /**
      * @brief Emitted when mouse cursor moves across map viewport, packed as domain GeoCoordinate.
@@ -272,6 +285,12 @@ private:
 
     /// Registered context menu contributors
     QList<GISApp::Core::Interfaces::IContextMenuContributor*> m_contextMenuContributors;
+
+    /// Registered interactive canvas gesture listeners
+    QList<GISApp::Core::Interfaces::IMapInteractionListener*> m_interactionListeners;
+
+    /// Active listener currently capturing mouse drag gestures (or nullptr if none)
+    GISApp::Core::Interfaces::IMapInteractionListener *m_activeInteractionListener{nullptr};
 
     /**
      * @brief Displays aggregated context menu for right-click events at given screen coordinate.

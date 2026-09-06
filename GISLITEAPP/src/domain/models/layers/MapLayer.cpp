@@ -37,6 +37,7 @@ QString MapLayer::typeIcon() const
     case LayerType::Tile:          return "🌐";
     case LayerType::TacticalTrack: return "🎯";
     case LayerType::SampleEntity:  return "🔷";
+    case LayerType::ComplexEntity: return "💠";
     }
     return "📄";
 }
@@ -51,6 +52,7 @@ QString MapLayer::layerTypeToString(LayerType type)
     case LayerType::Tile:          return "tile";
     case LayerType::TacticalTrack: return "tactical_track";
     case LayerType::SampleEntity:  return "sample_entity";
+    case LayerType::ComplexEntity: return "complex_entity";
     }
     return "vector";
 }
@@ -65,6 +67,7 @@ LayerType MapLayer::stringToLayerType(const QString &str)
     if (s == "tile")           return LayerType::Tile;
     if (s == "tactical_track") return LayerType::TacticalTrack;
     if (s == "sample_entity")  return LayerType::SampleEntity;
+    if (s == "complex_entity") return LayerType::ComplexEntity;
     return LayerType::Vector;
 }
 

@@ -44,6 +44,10 @@ namespace GISApp::Controllers::SampleEntities {
 class SampleEntityController;
 }
 
+namespace GISApp::Controllers::ComplexEntities {
+class ComplexEntityController;
+}
+
 namespace GISApp::Controllers::Layers {
 
 /**
@@ -110,6 +114,12 @@ public:
      * @param[in] sampleEntityController Pointer to SampleEntityController.
      */
     void setSampleEntityController(GISApp::Controllers::SampleEntities::SampleEntityController *sampleEntityController);
+
+    /**
+     * @brief Sets the ComplexEntityController for complex entity visibility delegation.
+     * @param[in] complexEntityController Pointer to ComplexEntityController.
+     */
+    void setComplexEntityController(GISApp::Controllers::ComplexEntities::ComplexEntityController *complexEntityController);
 
 public slots:
     /**
@@ -200,6 +210,7 @@ private:
     GISApp::Controllers::MapController *m_mapController{nullptr};
     GISApp::Controllers::Tracks::TrackController *m_trackController{nullptr};
     GISApp::Controllers::SampleEntities::SampleEntityController *m_sampleEntityController{nullptr};
+    GISApp::Controllers::ComplexEntities::ComplexEntityController *m_complexEntityController{nullptr};
 };
 
 } // namespace GISApp::Controllers::Layers

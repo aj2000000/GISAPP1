@@ -29,6 +29,7 @@
 namespace GISApp::Repositories {
 class ITrackRepository;
 class ISampleEntityRepository;
+class IComplexEntityRepository;
 }
 
 namespace GISApp::Communication::Udp {
@@ -70,12 +71,17 @@ public:
      */
     void registerTrackRepository(GISApp::Repositories::ITrackRepository *trackRepo);
 
-
-        /**
+    /**
      * @brief Binds a sample entity repository and registers UdpSampleEntityMessageHandler for Message ID 904.
      * @param[in] sampleEntityRepo Pointer to ISampleEntityRepository.
      */
     void registerSampleEntityRepository(GISApp::Repositories::ISampleEntityRepository *sampleEntityRepo);
+
+    /**
+     * @brief Binds a complex entity repository and registers UdpComplexEntityMessageHandler for Message ID 905.
+     * @param[in] complexEntityRepo Pointer to IComplexEntityRepository.
+     */
+    void registerComplexEntityRepository(GISApp::Repositories::IComplexEntityRepository *complexEntityRepo);
 
     
     /**

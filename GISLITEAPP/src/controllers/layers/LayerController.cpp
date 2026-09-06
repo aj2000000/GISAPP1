@@ -12,6 +12,8 @@
 #include "SampleEntityController.h"
 #include "TrackMapRenderer.h"
 #include "SampleEntityMapRenderer.h"
+#include "ComplexEntityController.h"
+#include "ComplexEntityMapRenderer.h"
 #include "LayerTreePanel.h"
 #include "LayerTreeView.h"
 #include "MapLayer.h"
@@ -116,6 +118,18 @@ void LayerController::setSampleEntityController(GISApp::Controllers::SampleEntit
         auto *layer = m_repository->getLayerById("sample_entity_layer");
         if (layer) {
             m_sampleEntityController->setEntitiesVisible(layer->isVisible());
+            delete layer;
+        }
+    }
+}
+
+void LayerController::setComplexEntityController(GISApp::Controllers::ComplexEntities::ComplexEntityController *complexEntityController)
+{
+    m_complexEntityController = complexEntityController;
+    if (m_complexEntityController && m_repository) {
+        auto *layer = m_repository->getLayerById("complex_entity_layer");
+        if (layer) {
+            m_complexEntityController->setEntitiesVisible(layer->isVisible());
             delete layer;
         }
     }
@@ -264,6 +278,11 @@ void LayerController::panToLayer(const QModelIndex &index)
                 if (foundCoordinates) {
                     break;
                 }
+            } else if (l && l->id() == "complex_entity_layer" && m_complexEntityController) {
+                foundCoordinates = m_complexEntityController->calculateEntitiesCenter(targetLat, targetLon, targetZoom);
+                if (foundCoordinates) {
+                    break;
+                }
             }
         }
 
@@ -286,6 +305,14 @@ void LayerController::panToLayer(const QModelIndex &index)
             }
         } else if (layer->id() == "sample_entity_layer") {
             if (m_sampleEntityController && m_sampleEntityController->calculateEntitiesCenter(targetLat, targetLon, targetZoom)) {
+                targetZoom = 10.0;
+            } else {
+                targetLat = 12.9716;
+                targetLon = 77.5946;
+                targetZoom = 7.0;
+            }
+        } else if (layer->id() == "complex_entity_layer") {
+            if (m_complexEntityController && m_complexEntityController->calculateEntitiesCenter(targetLat, targetLon, targetZoom)) {
                 targetZoom = 10.0;
             } else {
                 targetLat = 12.9716;
@@ -337,6 +364,10 @@ void LayerController::onLayerVisibilityChanged(const QString &layerId, bool visi
         m_sampleEntityController->setEntitiesVisible(visible);
     }
 
+    if (layerId == "complex_entity_layer" && m_complexEntityController) {
+        m_complexEntityController->setEntitiesVisible(visible);
+    }
+
     if (m_mapWidget && m_mapWidget->rawMap()) {
         const QString vis = visible ? QStringLiteral("visible") : QStringLiteral("none");
         if (m_mapWidget->rawMap()->layerExists(layerId)) {
@@ -364,6 +395,13 @@ void LayerController::onLayerVisibilityChanged(const QString &layerId, bool visi
             }
         }
         if (layerId == "sample_entity_layer" && !m_sampleEntityController) {
+            for (const auto &lid : resolveMapLibreLayerIds(layerId)) {
+                if (m_mapWidget->rawMap()->layerExists(lid)) {
+                    m_mapWidget->rawMap()->setLayoutProperty(lid, "visibility", vis);
+                }
+            }
+        }
+        if (layerId == "complex_entity_layer" && !m_complexEntityController) {
             for (const auto &lid : resolveMapLibreLayerIds(layerId)) {
                 if (m_mapWidget->rawMap()->layerExists(lid)) {
                     m_mapWidget->rawMap()->setLayoutProperty(lid, "visibility", vis);
@@ -412,6 +450,66 @@ QStringList LayerController::resolveMapLibreLayerIds(const QString &logicalId) c
                 QStringLiteral("sample_entities_circle"),
                 QStringLiteral("sample_entities_icon"),
                 QStringLiteral("sample_entities_label")};
+    }
+    if (logicalId == QStringLiteral("complex_entity_layer")) {
+        return {
+            // Polygon (Type 3)
+            QStringLiteral("complex_entities_polygon_fill"),
+            QStringLiteral("complex_entities_polygon_outline"),
+            QStringLiteral("complex_entities_polygon_annotation_top"),
+            QStringLiteral("complex_entities_polygon_annotation_bottom"),
+            QStringLiteral("complex_entities_polygon_annotation_left"),
+            QStringLiteral("complex_entities_polygon_annotation_right"),
+            QStringLiteral("complex_entities_polygon_label"),
+            // Line (Type 2)
+            QStringLiteral("complex_entities_line_glow"),
+            QStringLiteral("complex_entities_line_core"),
+            QStringLiteral("complex_entities_line_annotation_top"),
+            QStringLiteral("complex_entities_line_annotation_bottom"),
+            QStringLiteral("complex_entities_line_annotation_left"),
+            QStringLiteral("complex_entities_line_annotation_right"),
+            QStringLiteral("complex_entities_line_label"),
+            // Formation Boundary (Type 7)
+            QStringLiteral("complex_entities_boundary_glow"),
+            QStringLiteral("complex_entities_boundary_line_solid"),
+            QStringLiteral("complex_entities_boundary_line_dashed"),
+            QStringLiteral("complex_entities_boundary_line_dotted"),
+            QStringLiteral("complex_entities_boundary_echelon"),
+            QStringLiteral("complex_entities_boundary_left"),
+            QStringLiteral("complex_entities_boundary_right"),
+            // Deployment Area (Type 8)
+            QStringLiteral("complex_entities_deployment_glow"),
+            QStringLiteral("complex_entities_deployment_solid"),
+            QStringLiteral("complex_entities_deployment_dashed"),
+            QStringLiteral("complex_entities_deployment_dotted"),
+            QStringLiteral("complex_entities_deployment_echelon"),
+            // Point (Type 1)
+            QStringLiteral("complex_entities_point_glow"),
+            QStringLiteral("complex_entities_point_circle"),
+            QStringLiteral("complex_entities_point_annotation_top"),
+            QStringLiteral("complex_entities_point_annotation_bottom"),
+            QStringLiteral("complex_entities_point_annotation_left"),
+            QStringLiteral("complex_entities_point_annotation_right"),
+            QStringLiteral("complex_entities_point_label"),
+            // Custom Icon (Type 5)
+            QStringLiteral("complex_entities_icon"),
+            QStringLiteral("complex_entities_icon_annotation_top"),
+            QStringLiteral("complex_entities_icon_annotation_bottom"),
+            QStringLiteral("complex_entities_icon_annotation_left"),
+            QStringLiteral("complex_entities_icon_annotation_right"),
+            QStringLiteral("complex_entities_icon_label"),
+            // Custom Painter (Type 6)
+            QStringLiteral("complex_entities_custom_painter"),
+            QStringLiteral("complex_entities_painter_annotation_top"),
+            QStringLiteral("complex_entities_painter_annotation_bottom"),
+            QStringLiteral("complex_entities_painter_annotation_left"),
+            QStringLiteral("complex_entities_painter_annotation_right"),
+            QStringLiteral("complex_entities_painter_label"),
+            // Control Points (Editor)
+            QStringLiteral("complex_entities_control_point_glow"),
+            QStringLiteral("complex_entities_control_point_core"),
+            QStringLiteral("complex_entities_control_point_label")
+        };
     }
     // For future / custom layers, the MapLibre layer ID matches the logical ID
     return {logicalId};
@@ -563,6 +661,11 @@ void LayerController::restackMapLibreLayers(const QMap<QString, int> &orderMap)
                 m_sampleEntityController->sampleEntityMapRenderer()->reconfigureLayers();
                 qDebug() << "[LayerController] Reconfigured GPU layers for sample_entity_layer via renderer";
             }
+        } else if (logicalId == QStringLiteral("complex_entity_layer")) {
+            if (m_complexEntityController && m_complexEntityController->complexEntityMapRenderer()) {
+                m_complexEntityController->complexEntityMapRenderer()->reconfigureLayers();
+                qDebug() << "[LayerController] Reconfigured GPU layers for complex_entity_layer via renderer";
+            }
         } else {
             // Generic custom layer re-addition
             for (const QString &id : resolveMapLibreLayerIds(logicalId)) {
@@ -668,11 +771,23 @@ void LayerController::ensureFixedLayersExist()
     sampleEntityLayer.setVisible(true);
     sampleEntityLayer.setOpacity(1.0);
 
+    // 5. Mandatory Complex Entity layer
+    GISApp::Domain::Layers::MapLayer complexEntityLayer(
+        "complex_entity_layer",
+        "Complex Entity",
+        GISApp::Domain::Layers::LayerType::ComplexEntity,
+        ""
+    );
+    complexEntityLayer.setGroupName("Complex");
+    complexEntityLayer.setVisible(true);
+    complexEntityLayer.setOpacity(1.0);
+
     QVector<GISApp::Domain::Layers::MapLayer> fixedLayers = {
         baseMapLayer,
         worldMapLayer,
         tacticalTracksLayer,
-        sampleEntityLayer
+        sampleEntityLayer,
+        complexEntityLayer
     };
 
     m_repository->ensureFixedLayers(fixedLayers);

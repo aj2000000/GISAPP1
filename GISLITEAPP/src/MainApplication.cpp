@@ -8,6 +8,8 @@
 #include "TrackRepository.h"
 #include "ISampleEntityRepository.h"
 #include "sampleentityrepository.h"
+#include "IComplexEntityRepository.h"
+#include "SqliteComplexEntityRepository.h"
 
 #include <QCoreApplication>
 #include <QDir>
@@ -102,23 +104,23 @@ void MainApplication::shutdown()
 
     qInfo() << "[MainApplication] Shutting down application resources...";
 
-    // Close and release auth window if open
+    // 1. Stop UDP communication service first to halt background worker threads
+    if (m_udpMediator) {
+        m_udpMediator->stopService();
+    }
+
+    // 2. Close and release auth window if open
     if (m_authWindow) {
         m_authWindow->close();
         delete m_authWindow;
         m_authWindow = nullptr;
     }
 
-    // Close and release main window
+    // 3. Close and release main window
     if (m_mainWindow) {
         m_mainWindow->close();
         delete m_mainWindow;
         m_mainWindow = nullptr;
-    }
-
-    // Stop UDP communication service
-    if (m_udpMediator) {
-        m_udpMediator->stopService();
     }
 
     // Close database connection if open
@@ -224,6 +226,11 @@ void MainApplication::onUserAuthenticated(const QString &username)
         // Register live sample entity repository with UDP Mediator
     if (m_udpMediator && m_mainWindow && m_mainWindow->sampleEntityRepository()) {
         m_udpMediator->registerSampleEntityRepository(m_mainWindow->sampleEntityRepository());
+    }
+
+    // Register live complex entity repository with UDP Mediator
+    if (m_udpMediator && m_mainWindow && m_mainWindow->complexEntityRepository()) {
+        m_udpMediator->registerComplexEntityRepository(m_mainWindow->complexEntityRepository());
     }
 
     m_mainWindow->showStatusMessage(tr("Welcome %1 — Workspace Ready").arg(username), 6000);
